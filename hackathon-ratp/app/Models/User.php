@@ -38,4 +38,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Complaint::class);
     }
+
+    /** @return HasMany<Satisfaction, $this> */
+    public function satisfactions(): HasMany
+    {
+        return $this->hasMany(Satisfaction::class);
+    }
 }

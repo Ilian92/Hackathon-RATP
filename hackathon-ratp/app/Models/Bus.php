@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+#[Fillable(['code'])]
+class Bus extends Model
+{
+    /** @return HasMany<Complaint, $this> */
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+}

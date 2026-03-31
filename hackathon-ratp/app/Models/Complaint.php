@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['description', 'severity', 'incident_time', 'bus_line', 'complaint_type_id', 'user_id', 'client_id'])]
+#[Fillable(['description', 'severity', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
 class Complaint extends Model
 {
     /**
@@ -20,6 +20,12 @@ class Complaint extends Model
             'incident_time' => 'datetime',
             'severity' => 'integer',
         ];
+    }
+
+    /** @return BelongsTo<Bus, $this> */
+    public function bus(): BelongsTo
+    {
+        return $this->belongsTo(Bus::class);
     }
 
     /** @return BelongsTo<ComplaintType, $this> */

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('description');
             $table->unsignedTinyInteger('severity');
             $table->timestamp('incident_time');
-            $table->string('bus_line');
+            $table->foreignId('bus_id')->constrained()->restrictOnDelete();
             $table->foreignId('complaint_type_id')->constrained()->restrictOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('client_id')->constrained()->restrictOnDelete();
