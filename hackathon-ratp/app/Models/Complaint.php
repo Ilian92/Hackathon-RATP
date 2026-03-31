@@ -7,22 +7,17 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['description', 'severity', 'status', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
+#[Fillable(['description', 'status', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
 class Complaint extends Model
 {
     use HasFactory;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'incident_time' => 'datetime',
-            'severity' => 'integer',
             'status' => ComplaintStatus::class,
         ];
     }
@@ -49,5 +44,11 @@ class Complaint extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    /** @return HasOne<Severity, $this> */
+    public function severity(): HasOne
+    {
+        return $this->hasOne(Severity::class);
     }
 }

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Client;
 use App\Models\Satisfaction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,7 +21,7 @@ class SatisfactionFactory extends Factory
             'note' => fake()->numberBetween(0, 10),
             'description' => fake()->optional(0.6)->sentence(),
             'client_id' => Client::factory(),
-            'user_id' => null,
+            'user_id' => User::factory()->chauffeur(),
         ];
     }
 

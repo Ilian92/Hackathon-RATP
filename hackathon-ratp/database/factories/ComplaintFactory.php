@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ComplaintStatus;
 use App\Models\Bus;
 use App\Models\Client;
 use App\Models\Complaint;
@@ -21,7 +22,7 @@ class ComplaintFactory extends Factory
     {
         return [
             'description' => fake()->paragraph(),
-            'severity' => fake()->numberBetween(0, 4),
+            'status' => fake()->randomElement(ComplaintStatus::cases()),
             'incident_time' => fake()->dateTimeBetween('-6 months', 'now'),
             'bus_id' => Bus::factory(),
             'complaint_type_id' => ComplaintType::factory(),
@@ -32,8 +33,6 @@ class ComplaintFactory extends Factory
 
     public function severe(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'severity' => fake()->numberBetween(3, 4),
-        ]);
+        return $this->state(fn (array $attributes) => []);
     }
 }
