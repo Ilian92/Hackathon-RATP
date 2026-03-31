@@ -21,8 +21,6 @@ class StoreComplaintRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'description' => ['required', 'string', 'max:2000'],
             'complaint_type_id' => ['required', 'integer', 'exists:complaint_types,id'],
-            'bus_code' => ['required', 'string', 'exists:buses,code'],
-            'scanned_at' => ['required', 'date'],
         ];
     }
 }

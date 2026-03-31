@@ -8,7 +8,7 @@
             </p>
         </div>
 
-        <form method="POST" action="{{ route('satisfaction.store') }}" x-data="{
+        <form method="POST" action="{{ route('satisfaction.store', $token) }}" x-data="{
             rating: 0,
             hovered: 0,
             setRating(value) { this.rating = value; },
@@ -20,8 +20,6 @@
             }
         }">
             @csrf
-            <input type="hidden" name="bus_code" value="{{ $busCode }}">
-            <input type="hidden" name="scanned_at" value="{{ $scannedAt }}">
             <input type="hidden" name="note" :value="rating">
 
             {{-- Email --}}
@@ -72,7 +70,7 @@
             </div>
 
             <div class="flex items-center justify-between gap-4">
-                <a href="{{ route('qrcode.show', ['bus' => $busCode]) }}"
+                <a href="{{ route('qrcode.landing', $token) }}"
                    class="text-sm text-[#004fa3] hover:text-[#003d80] font-medium">← Retour</a>
                 <x-primary-button x-bind:disabled="rating === 0">
                     Envoyer mon avis

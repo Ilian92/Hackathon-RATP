@@ -21,8 +21,6 @@ class StoreSatisfactionRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'note' => ['required', 'integer', 'min:0', 'max:10'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'bus_code' => ['required', 'string', 'exists:buses,code'],
-            'scanned_at' => ['required', 'date'],
         ];
     }
 }

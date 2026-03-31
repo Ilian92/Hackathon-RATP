@@ -14,29 +14,53 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class QrCodeController extends Controller
 {
-    public function show(Request $request): View
+    /**
+     * Point d'entrée du QR code (URL fixe collée dans le bus).
+     * Génère un token valable 24h et redirige.
+     */
+    public function show(Request $request): RedirectResponse
     {
         $bus = Bus::where('code', $request->string('bus'))->firstOrFail();
-        $scannedAt = now()->toDateTimeString();
 
-        return view('qrcode.show', compact('bus', 'scannedAt'));
+        $token = Str::random(64);
+
+        Cache::put("qr:{$token}", [
+            'bus_code' => $bus->code,
+            'scanned_at' => now()->toDateTimeString(),
+        ], now()->addHours(24));
+
+        return redirect()->route('qrcode.landing', $token);
     }
 
-    public function satisfactionCreate(Request $request): View
+    /**
+     * Page d'accueil après scan (token résolu).
+     */
+    public function landing(string $token): View
     {
-        $busCode = $request->string('bus');
-        $scannedAt = $request->string('scanned_at');
+        ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
 
-        return view('qrcode.satisfaction', compact('busCode', 'scannedAt'));
+        $bus = Bus::where('code', $busCode)->firstOrFail();
+
+        return view('qrcode.show', compact('token', 'bus', 'scannedAt'));
     }
 
-    public function satisfactionStore(StoreSatisfactionRequest $request): RedirectResponse
+    public function satisfactionCreate(string $token): View
     {
+        ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
+
+        return view('qrcode.satisfaction', compact('token', 'busCode', 'scannedAt'));
+    }
+
+    public function satisfactionStore(StoreSatisfactionRequest $request, string $token): RedirectResponse
+    {
+        ['bus_code' => $busCode] = $this->resolveToken($token);
+
         $validated = $request->validated();
-
         $client = Client::firstOrCreate(['email' => $validated['email']]);
 
         Satisfaction::create([
@@ -45,41 +69,58 @@ class QrCodeController extends Controller
             'client_id' => $client->id,
         ]);
 
-        return redirect()->route('qrcode.show', ['bus' => $validated['bus_code']])
+        return redirect()->route('qrcode.landing', $token)
             ->with('success', 'Merci pour votre retour !');
     }
 
-    public function complaintCreate(Request $request): View
+    public function complaintCreate(string $token): View
     {
-        $busCode = $request->string('bus');
-        $scannedAt = $request->string('scanned_at');
+        ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
+
         $complaintTypes = ComplaintType::all();
 
-        return view('qrcode.complaint', compact('busCode', 'scannedAt', 'complaintTypes'));
+        return view('qrcode.complaint', compact('token', 'busCode', 'scannedAt', 'complaintTypes'));
     }
 
-    public function complaintStore(StoreComplaintRequest $request): RedirectResponse
+    public function complaintStore(StoreComplaintRequest $request, string $token): RedirectResponse
     {
-        $validated = $request->validated();
+        ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
 
-        $bus = Bus::where('code', $validated['bus_code'])->firstOrFail();
+        $validated = $request->validated();
+        $bus = Bus::where('code', $busCode)->firstOrFail();
         $client = Client::firstOrCreate(['email' => $validated['email']]);
 
         $planning = Planning::where('bus_id', $bus->id)
-            ->whereDate('date', Carbon::parse($validated['scanned_at'])->toDateString())
+            ->whereDate('date', Carbon::parse($scannedAt)->toDateString())
             ->first();
 
         Complaint::create([
             'description' => $validated['description'],
             'severity' => null,
-            'incident_time' => $validated['scanned_at'],
+            'incident_time' => $scannedAt,
             'bus_id' => $bus->id,
             'complaint_type_id' => $validated['complaint_type_id'],
             'user_id' => $planning?->user_id,
             'client_id' => $client->id,
         ]);
 
-        return redirect()->route('qrcode.show', ['bus' => $validated['bus_code']])
+        return redirect()->route('qrcode.landing', $token)
             ->with('success', 'Votre plainte a bien été enregistrée.');
+    }
+
+    /**
+     * @return array{bus_code: string, scanned_at: string}
+     */
+    public function expired(): View
+    {
+        return view('qrcode.expired');
+    }
+
+    /**
+     * @return array{bus_code: string, scanned_at: string}
+     */
+    private function resolveToken(string $token): array
+    {
+        return Cache::get("qr:{$token}") ?? abort(redirect()->route('qrcode.expired'));
     }
 }

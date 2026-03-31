@@ -9,10 +9,12 @@ Route::get('/', function () {
 });
 
 Route::get('/qrcode', [QrCodeController::class, 'show'])->name('qrcode.show');
-Route::get('/satisfaction', [QrCodeController::class, 'satisfactionCreate'])->name('satisfaction.create');
-Route::post('/satisfaction', [QrCodeController::class, 'satisfactionStore'])->name('satisfaction.store');
-Route::get('/complaint', [QrCodeController::class, 'complaintCreate'])->name('complaint.create');
-Route::post('/complaint', [QrCodeController::class, 'complaintStore'])->name('complaint.store');
+Route::get('/qrcode-expired', [QrCodeController::class, 'expired'])->name('qrcode.expired');
+Route::get('/qrcode/{token}', [QrCodeController::class, 'landing'])->name('qrcode.landing');
+Route::get('/qrcode/{token}/satisfaction', [QrCodeController::class, 'satisfactionCreate'])->name('satisfaction.create');
+Route::post('/qrcode/{token}/satisfaction', [QrCodeController::class, 'satisfactionStore'])->name('satisfaction.store');
+Route::get('/qrcode/{token}/complaint', [QrCodeController::class, 'complaintCreate'])->name('complaint.create');
+Route::post('/qrcode/{token}/complaint', [QrCodeController::class, 'complaintStore'])->name('complaint.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
