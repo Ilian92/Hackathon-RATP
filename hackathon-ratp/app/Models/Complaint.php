@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['description', 'severity', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
 class Complaint extends Model
 {
+    use HasFactory;
+
     /**
      * Get the attributes that should be cast.
      *

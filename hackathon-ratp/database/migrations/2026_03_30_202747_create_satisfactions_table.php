@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('satisfactions', function (Blueprint $table) {
             $table->id();
             $table->unsignedTinyInteger('note');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->foreignId('client_id')->constrained()->restrictOnDelete();
-            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
         });
     }
