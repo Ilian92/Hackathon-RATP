@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
             $table->text('description');
-            $table->unsignedTinyInteger('severity');
+            $table->unsignedTinyInteger('severity')->nullable();
             $table->timestamp('incident_time');
             $table->foreignId('bus_id')->constrained()->restrictOnDelete();
             $table->foreignId('complaint_type_id')->constrained()->restrictOnDelete();
-            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('client_id')->constrained()->restrictOnDelete();
             $table->timestamps();
         });

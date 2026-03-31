@@ -17,4 +17,10 @@ class Bus extends Model
     {
         return $this->hasMany(Complaint::class);
     }
+
+    /** @return HasMany<Planning, $this> */
+    public function plannings(): HasMany
+    {
+        return $this->hasMany(Planning::class);
+    }
 }

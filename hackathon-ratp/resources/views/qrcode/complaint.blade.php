@@ -35,36 +35,6 @@
                 <x-input-error :messages="$errors->get('complaint_type_id')" class="mt-2" />
             </div>
 
-            {{-- Chauffeur --}}
-            <div class="mb-4">
-                <x-input-label for="driver_id" value="Chauffeur concerné" />
-                <select id="driver_id" name="driver_id" required
-                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
-                    <option value="">-- Sélectionner --</option>
-                    @foreach ($drivers as $driver)
-                        <option value="{{ $driver->id }}" @selected(old('driver_id') == $driver->id)>
-                            {{ $driver->first_name }} {{ $driver->last_name }}
-                        </option>
-                    @endforeach
-                </select>
-                <x-input-error :messages="$errors->get('driver_id')" class="mt-2" />
-            </div>
-
-            {{-- Gravité --}}
-            <div class="mb-4">
-                <x-input-label for="severity" value="Niveau de gravité" />
-                <select id="severity" name="severity" required
-                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="0" @selected(old('severity') == '0')>0 — Mineur</option>
-                    <option value="1" @selected(old('severity') == '1')>1 — Faible</option>
-                    <option value="2" @selected(old('severity') == '2')>2 — Modéré</option>
-                    <option value="3" @selected(old('severity') == '3')>3 — Grave</option>
-                    <option value="4" @selected(old('severity') == '4')>4 — Critique</option>
-                </select>
-                <x-input-error :messages="$errors->get('severity')" class="mt-2" />
-            </div>
-
             {{-- Description --}}
             <div class="mb-6">
                 <x-input-label for="description" value="Description de l'incident" />

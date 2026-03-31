@@ -7,8 +7,10 @@ use App\Models\Bus;
 use App\Models\Client;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
+use App\Models\Planning;
 use App\Models\Satisfaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -37,6 +39,19 @@ class DatabaseSeeder extends Seeder
 
         // Bus
         $buses = Bus::factory(10)->create();
+
+        // Planning : un chauffeur par bus par jour sur 90 jours + aujourd'hui
+        $period = Carbon::today()->subDays(90);
+        while ($period->lte(Carbon::today())) {
+            foreach ($buses as $bus) {
+                Planning::create([
+                    'bus_id' => $bus->id,
+                    'user_id' => $drivers->random()->id,
+                    'date' => $period->toDateString(),
+                ]);
+            }
+            $period->addDay();
+        }
 
         // Clients
         $clients = Client::factory(30)->create();
