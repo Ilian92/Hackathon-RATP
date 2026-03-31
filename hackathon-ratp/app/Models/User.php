@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -49,5 +50,23 @@ class User extends Authenticatable
     public function plannings(): HasMany
     {
         return $this->hasMany(Planning::class);
+    }
+
+    /** @return BelongsToMany<CentreBus, $this> */
+    public function centreBuses(): BelongsToMany
+    {
+        return $this->belongsToMany(CentreBus::class);
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function chauffeurs(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'manager_chauffeur', 'manager_id', 'chauffeur_id');
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function managers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'manager_chauffeur', 'chauffeur_id', 'manager_id');
     }
 }
