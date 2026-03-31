@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['first_name', 'last_name', 'email', 'password', 'role'])]
+#[Fillable(['matricule', 'first_name', 'last_name', 'email', 'password', 'role', 'contract_start_date', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -31,6 +32,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'status' => UserStatus::class,
+            'contract_start_date' => 'date',
         ];
     }
 
@@ -50,6 +53,18 @@ class User extends Authenticatable
     public function plannings(): HasMany
     {
         return $this->hasMany(Planning::class);
+    }
+
+    /** @return HasMany<Gratification, $this> */
+    public function gratifications(): HasMany
+    {
+        return $this->hasMany(Gratification::class);
+    }
+
+    /** @return HasMany<Sanction, $this> */
+    public function sanctions(): HasMany
+    {
+        return $this->hasMany(Sanction::class);
     }
 
     /** @return BelongsToMany<CentreBus, $this> */

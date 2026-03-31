@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\ComplaintStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['description', 'severity', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
+#[Fillable(['description', 'severity', 'status', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
 class Complaint extends Model
 {
     use HasFactory;
@@ -22,6 +23,7 @@ class Complaint extends Model
         return [
             'incident_time' => 'datetime',
             'severity' => 'integer',
+            'status' => ComplaintStatus::class,
         ];
     }
 

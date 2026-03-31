@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +27,10 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'matricule' => 'RATP-'.strtoupper(Str::random(6)),
             'role' => fake()->randomElement(UserRole::cases()),
+            'contract_start_date' => fake()->dateTimeBetween('-15 years', '-6 months')->format('Y-m-d'),
+            'status' => UserStatus::Actif,
             'remember_token' => Str::random(10),
         ];
     }
