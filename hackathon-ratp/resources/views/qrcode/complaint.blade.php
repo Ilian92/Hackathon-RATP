@@ -2,7 +2,10 @@
     <div>
         <div class="mb-6 text-center">
             <h1 class="text-xl font-bold text-gray-900">Déposer une plainte</h1>
-            <p class="mt-1 text-sm text-gray-500">Bus {{ $busCode }} — {{ \Carbon\Carbon::parse($scannedAt)->format('d/m/Y à H:i') }}</p>
+            <p class="mt-1 text-sm text-gray-500">
+                Bus <span class="font-medium text-[#004fa3]">{{ $busCode }}</span>
+                — {{ \Carbon\Carbon::parse($scannedAt)->format('d/m/Y à H:i') }}
+            </p>
         </div>
 
         <form method="POST" action="{{ route('complaint.store') }}">
@@ -21,7 +24,7 @@
             <div class="mb-4">
                 <x-input-label for="complaint_type_id" value="Type de plainte" />
                 <select id="complaint_type_id" name="complaint_type_id" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
                     <option value="">-- Sélectionner --</option>
                     @foreach ($complaintTypes as $type)
                         <option value="{{ $type->id }}" @selected(old('complaint_type_id') == $type->id)>
@@ -36,7 +39,7 @@
             <div class="mb-4">
                 <x-input-label for="driver_id" value="Chauffeur concerné" />
                 <select id="driver_id" name="driver_id" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
                     <option value="">-- Sélectionner --</option>
                     @foreach ($drivers as $driver)
                         <option value="{{ $driver->id }}" @selected(old('driver_id') == $driver->id)>
@@ -51,7 +54,7 @@
             <div class="mb-4">
                 <x-input-label for="severity" value="Niveau de gravité" />
                 <select id="severity" name="severity" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
                     <option value="">-- Sélectionner --</option>
                     <option value="0" @selected(old('severity') == '0')>0 — Mineur</option>
                     <option value="1" @selected(old('severity') == '1')>1 — Faible</option>
@@ -66,13 +69,13 @@
             <div class="mb-6">
                 <x-input-label for="description" value="Description de l'incident" />
                 <textarea id="description" name="description" rows="4" required
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">{{ old('description') }}</textarea>
+                          class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">{{ old('description') }}</textarea>
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
             <div class="flex items-center justify-between gap-4">
                 <a href="{{ route('qrcode.show', ['bus' => $busCode]) }}"
-                   class="text-sm text-gray-500 hover:text-gray-700">← Retour</a>
+                   class="text-sm text-[#004fa3] hover:text-[#003d80] font-medium">← Retour</a>
                 <x-primary-button>
                     Envoyer la plainte
                 </x-primary-button>

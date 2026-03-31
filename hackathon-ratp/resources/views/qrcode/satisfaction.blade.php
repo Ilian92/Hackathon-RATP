@@ -2,7 +2,10 @@
     <div>
         <div class="mb-6 text-center">
             <h1 class="text-xl font-bold text-gray-900">Votre avis</h1>
-            <p class="mt-1 text-sm text-gray-500">Bus {{ $busCode }} — {{ \Carbon\Carbon::parse($scannedAt)->format('d/m/Y à H:i') }}</p>
+            <p class="mt-1 text-sm text-gray-500">
+                Bus <span class="font-medium text-[#004fa3]">{{ $busCode }}</span>
+                — {{ \Carbon\Carbon::parse($scannedAt)->format('d/m/Y à H:i') }}
+            </p>
         </div>
 
         <form method="POST" action="{{ route('satisfaction.store') }}" x-data="{
@@ -30,31 +33,21 @@
 
             {{-- Star rating --}}
             <div class="mb-5">
-                <x-input-label value="Note (étoiles)" />
-                <div class="mt-2 flex justify-center gap-1">
+                <x-input-label value="Note" />
+                <div class="mt-3 flex justify-center gap-1">
                     @for ($star = 1; $star <= 5; $star++)
-                        <div class="relative w-10 h-10 cursor-pointer"
-                             @mouseleave="hovered = 0">
-                            {{-- Left half (demi-étoile) --}}
+                        <div class="relative w-11 h-11 cursor-pointer" @mouseleave="hovered = 0">
                             <div class="absolute inset-y-0 left-0 w-1/2 z-10"
                                  @mouseenter="hovered = {{ ($star - 1) * 2 + 1 }}"
-                                 @click="setRating({{ ($star - 1) * 2 + 1 }})">
-                            </div>
-                            {{-- Right half (étoile pleine) --}}
+                                 @click="setRating({{ ($star - 1) * 2 + 1 }})"></div>
                             <div class="absolute inset-y-0 right-0 w-1/2 z-10"
                                  @mouseenter="hovered = {{ $star * 2 }}"
-                                 @click="setRating({{ $star * 2 }})">
-                            </div>
-                            {{-- Star SVG --}}
-                            <svg class="w-10 h-10 transition-colors duration-75"
-                                 viewBox="0 0 24 24"
-                                 xmlns="http://www.w3.org/2000/svg">
+                                 @click="setRating({{ $star * 2 }})"></div>
+                            <svg class="w-11 h-11 transition-colors duration-75" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <defs>
                                     <linearGradient id="half-{{ $star }}" x1="0" x2="1" y1="0" y2="0">
-                                        <stop offset="50%"
-                                              :stop-color="starFill({{ $star }}) !== 'empty' ? '#f59e0b' : '#d1d5db'" />
-                                        <stop offset="50%"
-                                              :stop-color="starFill({{ $star }}) === 'full' ? '#f59e0b' : '#d1d5db'" />
+                                        <stop offset="50%" :stop-color="starFill({{ $star }}) !== 'empty' ? '#4bc0ad' : '#e5e7eb'" />
+                                        <stop offset="50%" :stop-color="starFill({{ $star }}) === 'full' ? '#4bc0ad' : '#e5e7eb'" />
                                     </linearGradient>
                                 </defs>
                                 <path fill="url(#half-{{ $star }})"
@@ -63,9 +56,9 @@
                         </div>
                     @endfor
                 </div>
-                <p class="mt-1 text-center text-sm text-gray-500">
+                <p class="mt-2 text-center text-sm text-gray-500">
                     <span x-show="rating === 0">Sélectionnez une note</span>
-                    <span x-show="rating > 0" x-text="(rating / 2).toFixed(1) + ' / 5 étoiles'"></span>
+                    <span x-show="rating > 0" class="font-medium text-[#38a090]" x-text="(rating / 2).toFixed(1) + ' / 5 étoiles'"></span>
                 </p>
                 <x-input-error :messages="$errors->get('note')" class="mt-2" />
             </div>
@@ -74,13 +67,13 @@
             <div class="mb-6">
                 <x-input-label for="description" value="Commentaire (optionnel)" />
                 <textarea id="description" name="description" rows="3"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">{{ old('description') }}</textarea>
+                          class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">{{ old('description') }}</textarea>
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
             <div class="flex items-center justify-between gap-4">
                 <a href="{{ route('qrcode.show', ['bus' => $busCode]) }}"
-                   class="text-sm text-gray-500 hover:text-gray-700">← Retour</a>
+                   class="text-sm text-[#004fa3] hover:text-[#003d80] font-medium">← Retour</a>
                 <x-primary-button x-bind:disabled="rating === 0">
                     Envoyer mon avis
                 </x-primary-button>
