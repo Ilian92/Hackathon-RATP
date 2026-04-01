@@ -27,6 +27,9 @@
                 <x-input-label for="email" value="Votre adresse email" />
                 <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required autofocus />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                <p class="mt-1.5 text-xs text-gray-400">
+                    Votre adresse email est utilisée uniquement pour éviter les doublons. Elle ne sera pas conservée ni transmise à des tiers.
+                </p>
             </div>
 
             {{-- Star rating --}}
