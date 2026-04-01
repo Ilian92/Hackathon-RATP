@@ -34,15 +34,24 @@
             </form>
         </div>
 
+        @php
+            $sortUrl = fn (string $col) => route('com.complaints.index', array_filter([
+                'tab'       => $tab,
+                'type'      => $typeId,
+                'sort'      => $col,
+                'direction' => $sort === $col && $direction === 'asc' ? 'desc' : 'asc',
+            ]));
+        @endphp
+
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50 text-xs uppercase tracking-wide text-gray-400">
-                        <th class="px-5 py-3 text-left">Type</th>
-                        <th class="px-5 py-3 text-left">Chauffeur</th>
-                        <th class="px-5 py-3 text-left">Bus</th>
-                        <th class="px-5 py-3 text-left">Date</th>
-                        <th class="px-5 py-3 text-left">Gravité</th>
+                        <x-sort-th column="type" :sort="$sort" :direction="$direction" :href="$sortUrl('type')">Type</x-sort-th>
+                        <x-sort-th column="driver" :sort="$sort" :direction="$direction" :href="$sortUrl('driver')">Chauffeur</x-sort-th>
+                        <x-sort-th column="bus" :sort="$sort" :direction="$direction" :href="$sortUrl('bus')">Bus</x-sort-th>
+                        <x-sort-th column="incident_time" :sort="$sort" :direction="$direction" :href="$sortUrl('incident_time')">Date</x-sort-th>
+                        <x-sort-th column="severity" :sort="$sort" :direction="$direction" :href="$sortUrl('severity')">Gravité</x-sort-th>
                         <th class="px-5 py-3 text-left">Pris en charge par</th>
                         <th class="px-5 py-3"></th>
                     </tr>

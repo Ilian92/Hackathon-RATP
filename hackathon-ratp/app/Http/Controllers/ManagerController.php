@@ -17,14 +17,30 @@ class ManagerController extends Controller
         $driverIds = $request->user()->chauffeurs()->pluck('users.id');
         $tab = $request->string('tab')->toString() ?: 'pending';
 
-        $complaints = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent'])
-            ->whereIn('user_id', $driverIds)
-            ->when($tab === 'pending', fn ($q) => $q->where('step', ComplaintStep::ManagerReview))
-            ->when($tab === 'rh', fn ($q) => $q->where('step', ComplaintStep::RHReview))
-            ->when($tab === 'closed', fn ($q) => $q->where('step', ComplaintStep::Closed))
-            ->latest('incident_time')
-            ->paginate(20)
-            ->withQueryString();
+        $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus'];
+        $sort = in_array($request->string('sort')->toString(), $allowedSorts) ? $request->string('sort')->toString() : 'incident_time';
+        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+
+        $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent'])
+            ->select('complaints.*')
+            ->whereIn('complaints.user_id', $driverIds)
+            ->when($tab === 'pending', fn ($q) => $q->where('complaints.step', ComplaintStep::ManagerReview))
+            ->when($tab === 'rh', fn ($q) => $q->where('complaints.step', ComplaintStep::RHReview))
+            ->when($tab === 'closed', fn ($q) => $q->where('complaints.step', ComplaintStep::Closed));
+
+        match ($sort) {
+            'severity' => $query->leftJoin('severities', 'severities.complaint_id', '=', 'complaints.id')
+                ->orderByRaw("severities.level {$direction} NULLS LAST"),
+            'type' => $query->join('complaint_types', 'complaint_types.id', '=', 'complaints.complaint_type_id')
+                ->orderBy('complaint_types.name', $direction),
+            'driver' => $query->leftJoin('users as driver_users', 'driver_users.id', '=', 'complaints.user_id')
+                ->orderBy('driver_users.last_name', $direction),
+            'bus' => $query->join('buses', 'buses.id', '=', 'complaints.bus_id')
+                ->orderBy('buses.code', $direction),
+            default => $query->orderBy('complaints.incident_time', $direction),
+        };
+
+        $complaints = $query->paginate(20)->withQueryString();
 
         $counts = [
             'pending' => Complaint::whereIn('user_id', $driverIds)->where('step', ComplaintStep::ManagerReview)->count(),
@@ -32,7 +48,7 @@ class ManagerController extends Controller
             'closed' => Complaint::whereIn('user_id', $driverIds)->where('step', ComplaintStep::Closed)->count(),
         ];
 
-        return view('manager.complaints.index', compact('complaints', 'counts', 'tab'));
+        return view('manager.complaints.index', compact('complaints', 'counts', 'tab', 'sort', 'direction'));
     }
 
     public function show(Complaint $complaint): View

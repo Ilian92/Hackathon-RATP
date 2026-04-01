@@ -16,13 +16,29 @@ class RhController extends Controller
         $userId = $request->user()->id;
         $tab = $request->string('tab')->toString() ?: 'available';
 
-        $complaints = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent', 'rhAgent'])
-            ->where('step', ComplaintStep::RHReview)
-            ->when($tab === 'available', fn ($q) => $q->whereNull('rh_user_id'))
-            ->when($tab === 'mine', fn ($q) => $q->where('rh_user_id', $userId))
-            ->latest('incident_time')
-            ->paginate(20)
-            ->withQueryString();
+        $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus'];
+        $sort = in_array($request->string('sort')->toString(), $allowedSorts) ? $request->string('sort')->toString() : 'incident_time';
+        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+
+        $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent', 'rhAgent'])
+            ->select('complaints.*')
+            ->when($tab === 'available', fn ($q) => $q->where('complaints.step', ComplaintStep::RHReview)->whereNull('complaints.rh_user_id'))
+            ->when($tab === 'mine', fn ($q) => $q->where('complaints.step', ComplaintStep::RHReview)->where('complaints.rh_user_id', $userId))
+            ->when($tab === 'closed', fn ($q) => $q->where('complaints.rh_user_id', $userId)->where('complaints.step', ComplaintStep::Closed));
+
+        match ($sort) {
+            'severity' => $query->leftJoin('severities', 'severities.complaint_id', '=', 'complaints.id')
+                ->orderByRaw("severities.level {$direction} NULLS LAST"),
+            'type' => $query->join('complaint_types', 'complaint_types.id', '=', 'complaints.complaint_type_id')
+                ->orderBy('complaint_types.name', $direction),
+            'driver' => $query->leftJoin('users as driver_users', 'driver_users.id', '=', 'complaints.user_id')
+                ->orderBy('driver_users.last_name', $direction),
+            'bus' => $query->join('buses', 'buses.id', '=', 'complaints.bus_id')
+                ->orderBy('buses.code', $direction),
+            default => $query->orderBy('complaints.incident_time', $direction),
+        };
+
+        $complaints = $query->paginate(20)->withQueryString();
 
         $counts = [
             'available' => Complaint::where('step', ComplaintStep::RHReview)->whereNull('rh_user_id')->count(),
@@ -30,7 +46,7 @@ class RhController extends Controller
             'closed' => Complaint::where('rh_user_id', $userId)->where('step', ComplaintStep::Closed)->count(),
         ];
 
-        return view('rh.complaints.index', compact('complaints', 'counts', 'tab'));
+        return view('rh.complaints.index', compact('complaints', 'counts', 'tab', 'sort', 'direction'));
     }
 
     public function show(Complaint $complaint): View
