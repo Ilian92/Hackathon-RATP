@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\ComplaintStatus;
+use App\Enums\ComplaintStep;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Bus;
@@ -44,6 +45,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@ratp.fr',
         ]);
 
+        // Compte de test RH (mot de passe : password)
+        $testRh = User::factory()->role(UserRole::RH)->create([
+            'first_name' => 'Claire',
+            'last_name' => 'Moreau',
+            'email' => 'rh.test@ratp.fr',
+            'matricule' => 'RATP-RH001',
+        ]);
+
         // Compte de test Com (mot de passe : password)
         $testCom = User::factory()->role(UserRole::Com)->create([
             'first_name' => 'Marie',
@@ -83,6 +92,7 @@ class DatabaseSeeder extends Seeder
         foreach ($rhs as $rh) {
             $centreThiais->users()->attach($rh->id);
         }
+        $centreThiais->users()->attach($testRh->id);
         foreach ($avocats as $avocat) {
             $centreLagny->users()->attach($avocat->id);
         }
@@ -242,6 +252,85 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $testCom->id,
                 'level' => $severityData[$index]['level'],
                 'justification' => $severityData[$index]['justification'],
+            ]);
+        }
+
+        // --- Données pour le compte RH de test (rh.test@ratp.fr) ---
+        $rhComplaintsData = [
+            // Disponibles (non réclamées)
+            [
+                'step' => ComplaintStep::RHReview,
+                'rh_user_id' => null,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(3),
+                'severity' => ['level' => 4, 'justification' => 'Agression physique d\'un passager filmée par les caméras embarquées. Mise en danger immédiate constatée.'],
+            ],
+            [
+                'step' => ComplaintStep::RHReview,
+                'rh_user_id' => null,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(7),
+                'severity' => ['level' => 3, 'justification' => 'Conduite sous l\'emprise d\'alcool suspectée, test positif confirmé par le dépôt. Antécédents similaires.'],
+            ],
+            [
+                'step' => ComplaintStep::RHReview,
+                'rh_user_id' => null,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(10),
+                'severity' => ['level' => 4, 'justification' => 'Refus délibéré de prise en charge d\'un passager en fauteuil roulant, comportement discriminatoire avéré.'],
+            ],
+            // Prises en charge par Claire Moreau
+            [
+                'step' => ComplaintStep::RHReview,
+                'rh_user_id' => $testRh->id,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(14),
+                'severity' => ['level' => 3, 'justification' => 'Troisième signalement pour propos déplacés envers des usagers. Escalade progressive constatée sur 8 mois.'],
+            ],
+            [
+                'step' => ComplaintStep::RHReview,
+                'rh_user_id' => $testRh->id,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(18),
+                'severity' => ['level' => 4, 'justification' => 'Accident causé par excès de vitesse, blessé léger parmi les passagers. Rapport de police joint au dossier.'],
+            ],
+            // Clôturées par Claire Moreau
+            [
+                'step' => ComplaintStep::Closed,
+                'rh_user_id' => $testRh->id,
+                'status' => ComplaintStatus::Abouti,
+                'incident_time' => now()->subDays(45),
+                'severity' => ['level' => 3, 'justification' => 'Comportement agressif répété envers les usagers, malgré un avertissement antérieur. Procédure disciplinaire justifiée.'],
+            ],
+            [
+                'step' => ComplaintStep::Closed,
+                'rh_user_id' => $testRh->id,
+                'status' => ComplaintStatus::Abouti,
+                'incident_time' => now()->subDays(60),
+                'severity' => ['level' => 4, 'justification' => 'Falsification de feuille de route confirmée par les relevés GPS. Faute grave caractérisée.'],
+            ],
+        ];
+
+        foreach ($rhComplaintsData as $data) {
+            $severity = $data['severity'];
+
+            $complaint = Complaint::factory()->create([
+                'user_id' => $drivers->random()->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => $data['step'],
+                'rh_user_id' => $data['rh_user_id'],
+                'com_user_id' => $testCom->id,
+                'status' => $data['status'],
+                'incident_time' => $data['incident_time'],
+            ]);
+
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $severity['level'],
+                'justification' => $severity['justification'],
             ]);
         }
     }
