@@ -439,6 +439,62 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
+        // --- Dossiers des chauffeurs de Sophie Lefèvre traités par un autre manager ---
+        // Simule une période où Sophie était indisponible : ses chauffeurs ont été redirigés vers testManagerGeneric
+        $redirectedComplaintsData = [
+            [
+                'driver' => $teamDrivers[0],
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(4),
+                'severity' => ['level' => 2, 'justification' => 'Porte fermée sans attendre une passagère en cours de montée. Incident filmé par la caméra intérieure.'],
+            ],
+            [
+                'driver' => $teamDrivers[1],
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(8),
+                'severity' => ['level' => 1, 'justification' => 'Téléphone utilisé brièvement à l\'arrêt moteur coupé. Comportement isolé, aucun antécédent.'],
+            ],
+            [
+                'driver' => $testDriver,
+                'step' => ComplaintStep::Closed,
+                'status' => ComplaintStatus::Clos,
+                'incident_time' => now()->subDays(35),
+                'severity' => ['level' => 1, 'justification' => 'Incident verbal mineur résolu par entretien téléphonique. Chauffeur sensibilisé, aucune suite disciplinaire.'],
+            ],
+            [
+                'driver' => $teamDrivers[2],
+                'step' => ComplaintStep::RHReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(25),
+                'severity' => ['level' => 3, 'justification' => 'Frein d\'urgence actionné sans raison valable, provoquant des chutes parmi les passagers debout. Deuxième signalement similaire.'],
+            ],
+        ];
+
+        foreach ($redirectedComplaintsData as $data) {
+            $severity = $data['severity'];
+
+            $complaint = Complaint::factory()->create([
+                'user_id' => $data['driver']->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => $data['step'],
+                'status' => $data['status'],
+                'com_user_id' => $testCom->id,
+                'manager_user_id' => $testManagerGeneric->id,
+                'incident_time' => $data['incident_time'],
+            ]);
+
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $severity['level'],
+                'justification' => $severity['justification'],
+            ]);
+        }
+
         // --- Cas de test : chauffeur avec manager inactif (pour tester le remplacement) ---
         $inactiveManager = User::factory()->role(UserRole::Manager)->create([
             'first_name' => 'Thomas',

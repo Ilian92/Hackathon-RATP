@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
-use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\User;
@@ -16,7 +15,9 @@ class ManagerController extends Controller
 {
     public function index(Request $request): View
     {
-        $managerId = $request->user()->id;
+        $manager = $request->user();
+        $managerId = $manager->id;
+        $driverIds = $manager->chauffeurs()->pluck('users.id');
         $tab = $request->string('tab')->toString() ?: 'pending';
 
         $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus'];
@@ -26,9 +27,13 @@ class ManagerController extends Controller
         $severityFilter = $request->filled('severity') && in_array($request->integer('severity'), [0, 1, 2, 3, 4]) ? $request->integer('severity') : null;
         $driverFilter = $request->integer('driver_id') ?: null;
 
-        $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent'])
+        // Visible si assignée à ce manager OU si le chauffeur fait partie de son équipe
+        $visibilityScope = fn ($q) => $q->where('complaints.manager_user_id', $managerId)
+            ->orWhereIn('complaints.user_id', $driverIds);
+
+        $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent', 'managerAgent'])
             ->select('complaints.*')
-            ->where('complaints.manager_user_id', $managerId)
+            ->where($visibilityScope)
             ->when($tab === 'pending', fn ($q) => $q->where('complaints.step', ComplaintStep::ManagerReview))
             ->when($tab === 'rh', fn ($q) => $q->where('complaints.step', ComplaintStep::RHReview))
             ->when($tab === 'closed', fn ($q) => $q->where('complaints.step', ComplaintStep::Closed))
@@ -50,15 +55,12 @@ class ManagerController extends Controller
 
         $complaints = $query->paginate(20)->withQueryString();
         $complaintTypes = ComplaintType::orderBy('name')->get();
-        $drivers = User::where('role', UserRole::Chauffeur)
-            ->whereIn('id', Complaint::where('manager_user_id', $managerId)->pluck('user_id')->filter())
-            ->orderBy('last_name')->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+        $drivers = $manager->chauffeurs()->orderBy('last_name')->orderBy('first_name')->get(['users.id', 'first_name', 'last_name']);
 
         $counts = [
-            'pending' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::ManagerReview)->count(),
-            'rh' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::RHReview)->count(),
-            'closed' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::Closed)->count(),
+            'pending' => Complaint::where($visibilityScope)->where('step', ComplaintStep::ManagerReview)->count(),
+            'rh' => Complaint::where($visibilityScope)->where('step', ComplaintStep::RHReview)->count(),
+            'closed' => Complaint::where($visibilityScope)->where('step', ComplaintStep::Closed)->count(),
         ];
 
         return view('manager.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter'));
@@ -66,11 +68,15 @@ class ManagerController extends Controller
 
     public function show(Complaint $complaint, Request $request): View
     {
-        abort_unless($complaint->manager_user_id === $request->user()->id, 403);
+        $manager = $request->user();
+        $isAssignedManager = $complaint->manager_user_id === $manager->id;
+        $isResponsibleManager = $complaint->user_id && $manager->chauffeurs()->where('users.id', $complaint->user_id)->exists();
 
-        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent']);
+        abort_unless($isAssignedManager || $isResponsibleManager, 403);
 
-        return view('manager.complaints.show', compact('complaint'));
+        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent']);
+
+        return view('manager.complaints.show', compact('complaint', 'isAssignedManager'));
     }
 
     public function forwardToRh(Complaint $complaint, Request $request): RedirectResponse

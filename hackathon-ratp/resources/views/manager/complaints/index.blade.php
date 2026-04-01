@@ -54,6 +54,7 @@
                         <x-sort-th column="bus" :sort="$sort" :direction="$direction" :href="$sortUrl('bus')">Bus</x-sort-th>
                         <x-sort-th column="incident_time" :sort="$sort" :direction="$direction" :href="$sortUrl('incident_time')">Date</x-sort-th>
                         <x-sort-th column="severity" :sort="$sort" :direction="$direction" :href="$sortUrl('severity')">Gravité</x-sort-th>
+                        <th class="px-5 py-3 text-left">Responsable</th>
                         <th class="px-5 py-3"></th>
                     </tr>
                 </thead>
@@ -74,6 +75,15 @@
                                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $severityColors[$complaint->severity->level] }}">
                                         Niveau {{ $complaint->severity->level }}
                                     </span>
+                                @endif
+                            </td>
+                            <td class="px-5 py-4 text-gray-500 text-xs">
+                                @if ($complaint->managerAgent && $complaint->manager_user_id !== auth()->id())
+                                    <span class="text-orange-600 font-medium">
+                                        {{ $complaint->managerAgent->first_name }} {{ $complaint->managerAgent->last_name }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">Vous</span>
                                 @endif
                             </td>
                             <td class="px-5 py-4 text-right">

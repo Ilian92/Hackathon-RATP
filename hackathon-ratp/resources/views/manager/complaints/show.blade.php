@@ -26,28 +26,38 @@
         <x-complaint-detail :complaint="$complaint" />
 
         @if ($complaint->step->value === 'ManagerReview')
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action</h2>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <form method="POST" action="{{ route('manager.complaints.forward-rh', $complaint) }}">
-                        @csrf
-                        <button type="submit"
-                                class="w-full sm:w-auto px-5 py-2.5 bg-[#004fa3] hover:bg-[#003d80] text-white text-sm font-semibold rounded-xl transition shadow-sm">
-                            Transmettre au service RH
-                        </button>
-                    </form>
-                    <form method="POST" action="{{ route('manager.complaints.close', $complaint) }}">
-                        @csrf
-                        <button type="submit"
-                                class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
-                            Clôturer le dossier
-                        </button>
-                    </form>
+            @if ($isAssignedManager)
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action</h2>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <form method="POST" action="{{ route('manager.complaints.forward-rh', $complaint) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full sm:w-auto px-5 py-2.5 bg-[#004fa3] hover:bg-[#003d80] text-white text-sm font-semibold rounded-xl transition shadow-sm">
+                                Transmettre au service RH
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('manager.complaints.close', $complaint) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
+                                Clôturer le dossier
+                            </button>
+                        </form>
+                    </div>
+                    <p class="mt-3 text-xs text-gray-400">
+                        Clôturer = aucune suite. Transmettre au RH = ouverture d'une procédure disciplinaire.
+                    </p>
                 </div>
-                <p class="mt-3 text-xs text-gray-400">
-                    Clôturer = aucune suite. Transmettre au RH = ouverture d'une procédure disciplinaire.
-                </p>
-            </div>
+            @else
+                <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+                    <p class="text-sm text-gray-500">
+                        Ce dossier est traité par
+                        <span class="font-medium text-gray-700">{{ $complaint->managerAgent->first_name }} {{ $complaint->managerAgent->last_name }}</span>
+                        (manager de remplacement). Vous y avez accès en lecture seule car le chauffeur fait partie de votre équipe.
+                    </p>
+                </div>
+            @endif
         @endif
 
     </div>
