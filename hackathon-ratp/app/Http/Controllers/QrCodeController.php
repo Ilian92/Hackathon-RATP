@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Planning;
+use App\Models\QrcodeSatisfactionSubmission;
 use App\Models\QrcodeScanLimit;
 use App\Models\Satisfaction;
 use Carbon\Carbon;
@@ -58,7 +59,8 @@ class QrCodeController extends Controller
     {
         ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
 
-        $isThrottled = $this->isScanLimitReached($request->ip());
+        $ip = $request->ip();
+        $isThrottled = $this->isScanLimitReached($ip) || $this->hasAlreadySubmittedForToken($ip, $token);
 
         return view('qrcode.satisfaction', compact('token', 'busCode', 'scannedAt', 'isThrottled'));
     }
@@ -67,7 +69,9 @@ class QrCodeController extends Controller
     {
         ['bus_code' => $busCode] = $this->resolveToken($token);
 
-        if ($this->isScanLimitReached($request->ip())) {
+        $ip = $request->ip();
+
+        if ($this->isScanLimitReached($ip) || $this->hasAlreadySubmittedForToken($ip, $token)) {
             return redirect()->route('satisfaction.create', $token)
                 ->with('throttled', true);
         }
@@ -81,10 +85,18 @@ class QrCodeController extends Controller
             'client_id' => $client->id,
         ]);
 
-        $this->incrementScanCount($request->ip());
+        QrcodeSatisfactionSubmission::create(['ip_address' => $ip, 'token' => $token]);
+        $this->incrementScanCount($ip);
 
         return redirect()->route('qrcode.landing', $token)
             ->with('success', 'Merci pour votre retour !');
+    }
+
+    private function hasAlreadySubmittedForToken(string $ip, string $token): bool
+    {
+        return QrcodeSatisfactionSubmission::where('ip_address', $ip)
+            ->where('token', $token)
+            ->exists();
     }
 
     private function isScanLimitReached(string $ip): bool

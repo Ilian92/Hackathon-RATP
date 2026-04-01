@@ -13,8 +13,8 @@
                 <svg class="w-8 h-8 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                 </svg>
-                <p class="font-semibold text-red-700 mb-1">Limite atteinte</p>
-                <p class="text-sm text-red-600">Vous avez déjà soumis le nombre maximum d'avis autorisé ({{ \App\Http\Controllers\QrCodeController::SATISFACTION_LIMIT }}) au cours des dernières 24 heures. Merci de réessayer demain.</p>
+                <p class="font-semibold text-red-700 mb-1">Avis déjà soumis</p>
+                <p class="text-sm text-red-600">Vous avez déjà donné votre avis sur ce trajet. Un seul avis est autorisé par lien, et {{ \App\Http\Controllers\QrCodeController::SATISFACTION_LIMIT }} au maximum par 24 heures.</p>
                 <a href="{{ route('qrcode.landing', $token) }}" class="mt-4 inline-block text-sm text-red-700 font-medium hover:underline">← Retour</a>
             </div>
         @else
