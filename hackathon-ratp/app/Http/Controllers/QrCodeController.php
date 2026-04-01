@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Planning;
+use App\Models\QrcodeScanLimit;
 use App\Models\Satisfaction;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -49,16 +50,27 @@ class QrCodeController extends Controller
         return view('qrcode.show', compact('token', 'bus', 'scannedAt'));
     }
 
-    public function satisfactionCreate(string $token): View
+    public const SATISFACTION_LIMIT = 3;
+
+    private const SATISFACTION_WINDOW_H = 24;
+
+    public function satisfactionCreate(Request $request, string $token): View
     {
         ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
 
-        return view('qrcode.satisfaction', compact('token', 'busCode', 'scannedAt'));
+        $isThrottled = $this->isScanLimitReached($request->ip());
+
+        return view('qrcode.satisfaction', compact('token', 'busCode', 'scannedAt', 'isThrottled'));
     }
 
     public function satisfactionStore(StoreSatisfactionRequest $request, string $token): RedirectResponse
     {
         ['bus_code' => $busCode] = $this->resolveToken($token);
+
+        if ($this->isScanLimitReached($request->ip())) {
+            return redirect()->route('satisfaction.create', $token)
+                ->with('throttled', true);
+        }
 
         $validated = $request->validated();
         $client = Client::firstOrCreate(['email' => $validated['email']]);
@@ -69,8 +81,42 @@ class QrCodeController extends Controller
             'client_id' => $client->id,
         ]);
 
+        $this->incrementScanCount($request->ip());
+
         return redirect()->route('qrcode.landing', $token)
             ->with('success', 'Merci pour votre retour !');
+    }
+
+    private function isScanLimitReached(string $ip): bool
+    {
+        $record = QrcodeScanLimit::where('ip_address', $ip)->first();
+
+        if (! $record) {
+            return false;
+        }
+
+        // Fenêtre expirée : la limite ne s'applique plus
+        if ($record->window_start->addHours(self::SATISFACTION_WINDOW_H)->isPast()) {
+            return false;
+        }
+
+        return $record->count >= self::SATISFACTION_LIMIT;
+    }
+
+    private function incrementScanCount(string $ip): void
+    {
+        $record = QrcodeScanLimit::where('ip_address', $ip)->first();
+
+        if (! $record || $record->window_start->addHours(self::SATISFACTION_WINDOW_H)->isPast()) {
+            QrcodeScanLimit::updateOrCreate(
+                ['ip_address' => $ip],
+                ['count' => 1, 'window_start' => now()]
+            );
+
+            return;
+        }
+
+        $record->increment('count');
     }
 
     public function complaintCreate(string $token): View
