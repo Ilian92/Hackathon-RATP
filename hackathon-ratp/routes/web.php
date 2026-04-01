@@ -25,7 +25,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/agent/profile', [AgentController::class, 'profile'])->name('agent.profile');
+    Route::get('/profile', [AgentController::class, 'profile'])->name('profile');
 
     Route::prefix('com')->name('com.')->group(function () {
         Route::get('/complaints', [ComController::class, 'index'])->name('complaints.index');
@@ -48,9 +48,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/complaints/{complaint}/close', [RhController::class, 'close'])->name('complaints.close');
     });
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/manage-profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/manage-profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/manage-profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';
