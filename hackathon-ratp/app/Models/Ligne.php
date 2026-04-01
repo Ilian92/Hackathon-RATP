@@ -6,7 +6,6 @@ use Database\Factories\LigneFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['nom', 'centre_bus_id'])]
@@ -27,23 +26,13 @@ class Ligne extends Model
         return $this->belongsToMany(Arret::class)->withPivot('ordre')->orderByPivot('ordre');
     }
 
-    /** @return BelongsTo<Arret, $this> */
-    public function premierArret(): BelongsTo
+    public function premierArret(): ?Arret
     {
-        return $this->belongsTo(Arret::class, 'id', 'id')
-            ->join('arret_ligne', 'arrets.id', '=', 'arret_ligne.arret_id')
-            ->where('arret_ligne.ligne_id', $this->id)
-            ->orderBy('arret_ligne.ordre')
-            ->limit(1);
+        return $this->arrets()->orderByPivot('ordre')->first();
     }
 
-    /** @return BelongsTo<Arret, $this> */
-    public function dernierArret(): BelongsTo
+    public function dernierArret(): ?Arret
     {
-        return $this->belongsTo(Arret::class, 'id', 'id')
-            ->join('arret_ligne', 'arrets.id', '=', 'arret_ligne.arret_id')
-            ->where('arret_ligne.ligne_id', $this->id)
-            ->orderByDesc('arret_ligne.ordre')
-            ->limit(1);
+        return $this->arrets()->orderByPivot('ordre', 'desc')->first();
     }
 }
