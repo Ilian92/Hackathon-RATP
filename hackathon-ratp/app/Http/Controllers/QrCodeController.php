@@ -90,8 +90,18 @@ class QrCodeController extends Controller
         $bus = Bus::where('code', $busCode)->firstOrFail();
         $client = Client::firstOrCreate(['email' => $validated['email']]);
 
+        $scannedAt = Carbon::parse($scannedAt);
+        $scanTime = $scannedAt->format('H:i:s');
+
         $planning = Planning::where('bus_id', $bus->id)
-            ->whereDate('date', Carbon::parse($scannedAt)->toDateString())
+            ->whereDate('date', $scannedAt->toDateString())
+            ->where(function ($q) use ($scanTime) {
+                $q->whereNull('heure_debut')
+                    ->orWhere(function ($q2) use ($scanTime) {
+                        $q2->whereTime('heure_debut', '<=', $scanTime)
+                            ->whereTime('heure_fin', '>=', $scanTime);
+                    });
+            })
             ->first();
 
         Complaint::create([
