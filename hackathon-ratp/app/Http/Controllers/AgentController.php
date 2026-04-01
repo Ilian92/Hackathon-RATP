@@ -35,14 +35,23 @@ class AgentController extends Controller
 
         $satisfactionStats = $user->satisfactions()->selectRaw('AVG(note) as average, COUNT(*) as total')->first();
 
-        $avgSur5 = ($satisfactionStats?->average ?? 0) / 2;
+        $avgSur5   = ($satisfactionStats?->average ?? 0) / 2;
         $totalAvis = $satisfactionStats?->total ?? 0;
-        $aboutiesCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
-        $enCoursCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
-        $closCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
-        $scoreInterne = round($avgSur5 * 0.7 + (5 - min($aboutiesCount, 5)) * 0.3, 1);
 
-        return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne');
+        // Score interne calculé sur toutes les plaintes (métrique interne)
+        $allAboutiesCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
+        $scoreInterne     = round($avgSur5 * 0.7 + (5 - min($allAboutiesCount, 5)) * 0.3, 1);
+
+        // Seules les plaintes traitées par le manager sont visibles par le chauffeur
+        $visibleComplaints = $user->complaints->filter(
+            fn ($c) => in_array($c->step, [ComplaintStep::RHReview, ComplaintStep::Closed])
+        );
+
+        $aboutiesCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
+        $enCoursCount  = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
+        $closCount     = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+
+        return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne', 'visibleComplaints');
     }
 
     /** @return array<string, mixed> */

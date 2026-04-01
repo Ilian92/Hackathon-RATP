@@ -140,7 +140,7 @@
                         </div>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
-                        @forelse ($user->complaints->sortByDesc('incident_time') as $complaint)
+                        @forelse ($visibleComplaints->sortByDesc('incident_time') as $complaint)
                             @php $sc = $complaintStatusColors[$complaint->status->value] ?? 'bg-gray-100 text-gray-500'; @endphp
                             <div class="px-5 py-3 flex items-center justify-between gap-4">
                                 <div class="min-w-0">
