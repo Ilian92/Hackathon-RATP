@@ -1,0 +1,54 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('manager.complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 class="text-lg font-semibold text-gray-900">Plainte #{{ $complaint->id }}</h1>
+        </div>
+    </x-slot>
+
+    @if (session('success'))
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div class="rounded-xl bg-[#4bc0ad]/10 border border-[#4bc0ad]/30 p-4 text-sm text-[#38a090] flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        <x-complaint-detail :complaint="$complaint" />
+
+        @if ($complaint->step->value === 'ManagerReview')
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action</h2>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <form method="POST" action="{{ route('manager.complaints.forward-rh', $complaint) }}">
+                        @csrf
+                        <button type="submit"
+                                class="w-full sm:w-auto px-5 py-2.5 bg-[#004fa3] hover:bg-[#003d80] text-white text-sm font-semibold rounded-xl transition shadow-sm">
+                            Transmettre au service RH
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ route('manager.complaints.close', $complaint) }}">
+                        @csrf
+                        <button type="submit"
+                                class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
+                            Clôturer le dossier
+                        </button>
+                    </form>
+                </div>
+                <p class="mt-3 text-xs text-gray-400">
+                    Clôturer = aucune suite. Transmettre au RH = ouverture d'une procédure disciplinaire.
+                </p>
+            </div>
+        @endif
+
+    </div>
+</x-app-layout>

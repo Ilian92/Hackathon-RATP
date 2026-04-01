@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Enums\ComplaintStatus;
+use App\Enums\ComplaintStep;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['description', 'status', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id'])]
+#[Fillable(['description', 'status', 'step', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id', 'com_user_id', 'rh_user_id'])]
 class Complaint extends Model
 {
     use HasFactory;
@@ -19,6 +20,7 @@ class Complaint extends Model
         return [
             'incident_time' => 'datetime',
             'status' => ComplaintStatus::class,
+            'step' => ComplaintStep::class,
         ];
     }
 
@@ -50,5 +52,17 @@ class Complaint extends Model
     public function severity(): HasOne
     {
         return $this->hasOne(Severity::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function comAgent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'com_user_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function rhAgent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rh_user_id');
     }
 }
