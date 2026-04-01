@@ -62,6 +62,19 @@
                         {{ $user->contract_start_date?->format('d/m/Y') ?? '—' }}
                     </p>
                 </div>
+                @php
+                    $centreBuses = $user->role === \App\Enums\UserRole::Chauffeur
+                        ? $user->managers->flatMap->centreBuses->unique('id')
+                        : $user->centreBuses;
+                @endphp
+                @if ($centreBuses->isNotEmpty())
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wide">Centre de bus</p>
+                    @foreach ($centreBuses as $centreBus)
+                        <p class="text-sm font-medium text-gray-700 mt-0.5">{{ $centreBus->name }}</p>
+                    @endforeach
+                </div>
+                @endif
                 @if ($user->managers->isNotEmpty())
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Manager</p>

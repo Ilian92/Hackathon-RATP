@@ -6,7 +6,7 @@ use App\Enums\ComplaintStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Bus;
-use App\Models\Severity;
+use App\Models\CentreBus;
 use App\Models\Client;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
@@ -14,6 +14,7 @@ use App\Models\Gratification;
 use App\Models\Planning;
 use App\Models\Sanction;
 use App\Models\Satisfaction;
+use App\Models\Severity;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -25,15 +26,19 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        // Centres de bus
+        $centreLagny = CentreBus::factory()->create(['name' => 'Dépôt de Lagny', 'address' => '1 Rue du Dépôt, Lagny-sur-Marne']);
+        $centreThiais = CentreBus::factory()->create(['name' => 'Dépôt de Thiais', 'address' => '45 Avenue du Maréchal Joffre, Thiais']);
+
         // Utilisateurs par rôle
         $managers = User::factory(2)->role(UserRole::Manager)->create();
         $drivers = User::factory(5)->chauffeur()->create();
-        User::factory(2)->role(UserRole::Com)->create();
-        User::factory(1)->role(UserRole::RH)->create();
-        User::factory(1)->role(UserRole::Avocat)->create();
+        $coms = User::factory(2)->role(UserRole::Com)->create();
+        $rhs = User::factory(1)->role(UserRole::RH)->create();
+        $avocats = User::factory(1)->role(UserRole::Avocat)->create();
 
         // Compte de test manager (mot de passe : password)
-        User::factory()->role(UserRole::Manager)->create([
+        $testManagerGeneric = User::factory()->role(UserRole::Manager)->create([
             'first_name' => 'Test',
             'last_name' => 'Manager',
             'email' => 'test@ratp.fr',
@@ -63,6 +68,24 @@ class DatabaseSeeder extends Seeder
             'contract_start_date' => '2019-03-15',
             'status' => UserStatus::Actif,
         ]);
+
+        // Lier les managers aux centres de bus
+        $centreLagny->users()->attach($testManager->id);
+        $centreLagny->users()->attach($testManagerGeneric->id);
+        $centreLagny->users()->attach($managers->first()->id);
+        $centreThiais->users()->attach($managers->last()->id);
+
+        // Lier les autres employés (Com, RH, Avocat) aux centres
+        foreach ($coms as $com) {
+            $centreLagny->users()->attach($com->id);
+        }
+        $centreLagny->users()->attach($testCom->id);
+        foreach ($rhs as $rh) {
+            $centreThiais->users()->attach($rh->id);
+        }
+        foreach ($avocats as $avocat) {
+            $centreLagny->users()->attach($avocat->id);
+        }
 
         $testDriver->managers()->attach($testManager->id);
 
@@ -202,7 +225,7 @@ class DatabaseSeeder extends Seeder
 
         // --- Données pour le compte Com de test (com.test@ratp.fr) ---
         // Quelques plaintes déjà évaluées par Marie Laurent
-        $evaluatedComplaintIds = \App\Models\Severity::pluck('complaint_id');
+        $evaluatedComplaintIds = Severity::pluck('complaint_id');
         $evaluatedComplaints = Complaint::whereNotIn('id', $evaluatedComplaintIds)->take(5)->get();
 
         $severityData = [

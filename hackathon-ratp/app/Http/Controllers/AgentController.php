@@ -15,14 +15,14 @@ class AgentController extends Controller
     public function profile(Request $request): View
     {
         /** @var User $user */
-        $user = $request->user()->load('managers');
+        $user = $request->user()->load(['managers.centreBuses', 'centreBuses']);
 
         $data = match ($user->role) {
             UserRole::Chauffeur => $this->chauffeurData($user),
-            UserRole::Manager   => $this->managerData($user),
-            UserRole::Com       => $this->comData($user),
-            UserRole::RH        => $this->rhData($user),
-            UserRole::Avocat    => [],
+            UserRole::Manager => $this->managerData($user),
+            UserRole::Com => $this->comData($user),
+            UserRole::RH => $this->rhData($user),
+            UserRole::Avocat => [],
         };
 
         return view('profile', array_merge(['user' => $user], $data));
@@ -35,12 +35,12 @@ class AgentController extends Controller
 
         $satisfactionStats = $user->satisfactions()->selectRaw('AVG(note) as average, COUNT(*) as total')->first();
 
-        $avgSur5       = ($satisfactionStats?->average ?? 0) / 2;
-        $totalAvis     = $satisfactionStats?->total ?? 0;
+        $avgSur5 = ($satisfactionStats?->average ?? 0) / 2;
+        $totalAvis = $satisfactionStats?->total ?? 0;
         $aboutiesCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
-        $enCoursCount  = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
-        $closCount     = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
-        $scoreInterne  = round($avgSur5 * 0.7 + (5 - min($aboutiesCount, 5)) * 0.3, 1);
+        $enCoursCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
+        $closCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+        $scoreInterne = round($avgSur5 * 0.7 + (5 - min($aboutiesCount, 5)) * 0.3, 1);
 
         return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne');
     }
