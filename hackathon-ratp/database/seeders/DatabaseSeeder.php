@@ -6,12 +6,14 @@ use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Models\Arret;
 use App\Models\Bus;
 use App\Models\CentreBus;
 use App\Models\Client;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Gratification;
+use App\Models\Ligne;
 use App\Models\Planning;
 use App\Models\Sanction;
 use App\Models\Satisfaction;
@@ -97,6 +99,12 @@ class DatabaseSeeder extends Seeder
             $centreLagny->users()->attach($avocat->id);
         }
 
+        // Chauffeurs supplémentaires dans l'équipe de Sophie Lefèvre
+        $teamDrivers = User::factory(3)->chauffeur()->create();
+        foreach ($teamDrivers as $driver) {
+            $driver->managers()->attach($testManager->id);
+        }
+
         $testDriver->managers()->attach($testManager->id);
 
         // Lier les autres chauffeurs à leur manager
@@ -116,14 +124,48 @@ class DatabaseSeeder extends Seeder
         // Bus
         $buses = Bus::factory(10)->create();
 
+        // Lignes de bus rattachées aux centres
+        $arrets = Arret::factory(40)->create();
+
+        $lignesLagny = collect();
+        foreach (['66', '68', '92', 'N52', '115'] as $nom) {
+            $ligne = Ligne::create(['nom' => $nom, 'centre_bus_id' => $centreLagny->id]);
+            // Attacher 6-10 arrêts ordonnés à chaque ligne
+            $arretsDeLigne = $arrets->random(fake()->numberBetween(6, 10));
+            foreach ($arretsDeLigne->values() as $ordre => $arret) {
+                $ligne->arrets()->attach($arret->id, ['ordre' => $ordre + 1]);
+            }
+            $lignesLagny->push($ligne->load('arrets'));
+        }
+
+        $lignesThiais = collect();
+        foreach (['42', '183', '150', '172', 'N01'] as $nom) {
+            $ligne = Ligne::create(['nom' => $nom, 'centre_bus_id' => $centreThiais->id]);
+            $arretsDeLigne = $arrets->random(fake()->numberBetween(6, 10));
+            foreach ($arretsDeLigne->values() as $ordre => $arret) {
+                $ligne->arrets()->attach($arret->id, ['ordre' => $ordre + 1]);
+            }
+            $lignesThiais->push($ligne->load('arrets'));
+        }
+
+        $toutesLesLignes = $lignesLagny->merge($lignesThiais);
+
         // Planning : un chauffeur par bus par jour sur 90 jours + aujourd'hui
+        $allDrivers = $drivers->merge(collect([$testDriver]));
         $period = Carbon::today()->subDays(90);
         while ($period->lte(Carbon::today())) {
             foreach ($buses as $bus) {
+                $ligne = $toutesLesLignes->random();
+                $arretsDeLigne = $ligne->arrets->sortBy('pivot.ordre')->values();
                 Planning::create([
                     'bus_id' => $bus->id,
-                    'user_id' => $drivers->random()->id,
+                    'user_id' => $allDrivers->random()->id,
                     'date' => $period->toDateString(),
+                    'ligne_id' => $ligne->id,
+                    'arret_debut_id' => $arretsDeLigne->first()?->id,
+                    'heure_debut' => fake()->time('H:i:s', '12:00:00'),
+                    'arret_fin_id' => $arretsDeLigne->last()?->id,
+                    'heure_fin' => fake()->time('H:i:s', '23:59:59'),
                 ]);
             }
             $period->addDay();
@@ -323,6 +365,91 @@ class DatabaseSeeder extends Seeder
                 'rh_user_id' => $data['rh_user_id'],
                 'com_user_id' => $testCom->id,
                 'status' => $data['status'],
+                'incident_time' => $data['incident_time'],
+            ]);
+
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $severity['level'],
+                'justification' => $severity['justification'],
+            ]);
+        }
+
+        // --- Données pour le compte Manager de test (manager.test@ratp.fr) ---
+        $managerComplaintsData = [
+            // En attente de décision (ManagerReview)
+            [
+                'driver' => $testDriver,
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(3),
+                'severity' => ['level' => 2, 'justification' => 'Refus de priorité à un passager PMR. Incident confirmé par deux témoins présents dans le bus.'],
+            ],
+            [
+                'driver' => $teamDrivers[0],
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(6),
+                'severity' => ['level' => 1, 'justification' => 'Retard injustifié de 15 minutes au terminus. Premier incident signalé pour ce chauffeur.'],
+            ],
+            [
+                'driver' => $teamDrivers[1],
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(9),
+                'severity' => ['level' => 2, 'justification' => 'Comportement irrespectueux envers une usagère. Témoignage corroboré par les caméras embarquées.'],
+            ],
+            [
+                'driver' => $teamDrivers[2],
+                'step' => ComplaintStep::ManagerReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(11),
+                'severity' => ['level' => 1, 'justification' => 'Départ anticipé de 3 minutes, laissant un passager sur le quai. Erreur isolée sans antécédent.'],
+            ],
+            // Transmis au RH (niveau 3-4, déjà escaladés)
+            [
+                'driver' => $testDriver,
+                'step' => ComplaintStep::RHReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(20),
+                'severity' => ['level' => 3, 'justification' => 'Troisième signalement pour excès de vitesse en zone scolaire. Le manager a jugé l\'escalade RH nécessaire.'],
+            ],
+            [
+                'driver' => $teamDrivers[0],
+                'step' => ComplaintStep::RHReview,
+                'status' => ComplaintStatus::EnCours,
+                'incident_time' => now()->subDays(30),
+                'severity' => ['level' => 4, 'justification' => 'Insultes à caractère discriminatoire envers un usager, confirmées par enregistrement sonore embarqué.'],
+            ],
+            // Clôturés par le manager (sans suite ou avertissement)
+            [
+                'driver' => $teamDrivers[1],
+                'step' => ComplaintStep::Closed,
+                'status' => ComplaintStatus::Clos,
+                'incident_time' => now()->subDays(50),
+                'severity' => ['level' => 1, 'justification' => 'Incident mineur résolu par entretien oral. Chauffeur averti et sensibilisé.'],
+            ],
+            [
+                'driver' => $teamDrivers[2],
+                'step' => ComplaintStep::Closed,
+                'status' => ComplaintStatus::Clos,
+                'incident_time' => now()->subDays(70),
+                'severity' => ['level' => 0, 'justification' => 'Après vérification, la plainte est non fondée. Le chauffeur a respecté le protocole en vigueur.'],
+            ],
+        ];
+
+        foreach ($managerComplaintsData as $data) {
+            $severity = $data['severity'];
+
+            $complaint = Complaint::factory()->create([
+                'user_id' => $data['driver']->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => $data['step'],
+                'status' => $data['status'],
+                'com_user_id' => $testCom->id,
                 'incident_time' => $data['incident_time'],
             ]);
 

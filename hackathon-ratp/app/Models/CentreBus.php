@@ -8,12 +8,19 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'address'])]
 class CentreBus extends Model
 {
     /** @use HasFactory<CentreBusFactory> */
     use HasFactory;
+
+    /** @return HasMany<Ligne, $this> */
+    public function lignes(): HasMany
+    {
+        return $this->hasMany(Ligne::class);
+    }
 
     /** @return BelongsToMany<User, $this> */
     public function users(): BelongsToMany
