@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
 use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use App\Http\Requests\AssignSeverityRequest;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
@@ -64,9 +65,35 @@ class ComController extends Controller
 
     public function show(Complaint $complaint): View
     {
-        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent']);
+        $complaint->load(['complaintType', 'bus', 'driver.managers.centreBuses', 'client', 'severity.evaluator', 'comAgent']);
 
-        return view('com.complaints.show', compact('complaint'));
+        $substituteManagers = collect();
+
+        if (
+            $complaint->com_user_id === auth()->id()
+            && $complaint->step === ComplaintStep::ComReview
+            && $complaint->severity
+            && $complaint->severity->level >= 1
+            && $complaint->severity->level <= 2
+            && $complaint->driver
+        ) {
+            $activeManager = $complaint->driver->managers->firstWhere('status', UserStatus::Actif);
+
+            if (! $activeManager) {
+                $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
+
+                if ($centreBusIds->isNotEmpty()) {
+                    $substituteManagers = User::where('role', UserRole::Manager)
+                        ->where('status', UserStatus::Actif)
+                        ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
+                        ->orderBy('last_name')
+                        ->orderBy('first_name')
+                        ->get(['id', 'first_name', 'last_name']);
+                }
+            }
+        }
+
+        return view('com.complaints.show', compact('complaint', 'substituteManagers'));
     }
 
     public function claim(Complaint $complaint, Request $request): RedirectResponse
@@ -79,6 +106,36 @@ class ComController extends Controller
 
         return redirect()->route('com.complaints.show', $complaint)
             ->with('success', 'Dossier pris en charge.');
+    }
+
+    public function forwardToManager(Request $request, Complaint $complaint): RedirectResponse
+    {
+        if ($complaint->com_user_id !== $request->user()->id || $complaint->step !== ComplaintStep::ComReview || ! $complaint->severity) {
+            abort(403);
+        }
+
+        $managerId = $request->integer('manager_id');
+
+        $complaint->load('driver.managers.centreBuses');
+        $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
+
+        $manager = User::where('id', $managerId)
+            ->where('role', UserRole::Manager)
+            ->where('status', UserStatus::Actif)
+            ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
+            ->first();
+
+        if (! $manager) {
+            return back()->with('error', 'Manager invalide ou non disponible.');
+        }
+
+        $complaint->update([
+            'step' => ComplaintStep::ManagerReview,
+            'manager_user_id' => $manager->id,
+        ]);
+
+        return redirect()->route('com.complaints.show', $complaint)
+            ->with('success', 'Dossier transmis au manager de remplacement.');
     }
 
     public function assignSeverity(AssignSeverityRequest $request, Complaint $complaint): RedirectResponse
@@ -105,13 +162,41 @@ class ComController extends Controller
                 'step' => ComplaintStep::Closed,
                 'status' => ComplaintStatus::Clos,
             ]);
-        } elseif ($level <= 2) {
-            $complaint->update(['step' => ComplaintStep::ManagerReview]);
-        } else {
-            $complaint->update(['step' => ComplaintStep::RHReview]);
+
+            return redirect()->route('com.complaints.show', $complaint)
+                ->with('success', 'Évaluation enregistrée — dossier annulé.');
         }
 
+        if ($level <= 2) {
+            $complaint->load('driver.managers');
+            $activeManager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
+
+            if ($activeManager) {
+                $complaint->update([
+                    'step' => ComplaintStep::ManagerReview,
+                    'manager_user_id' => $activeManager->id,
+                ]);
+
+                return redirect()->route('com.complaints.show', $complaint)
+                    ->with('success', 'Évaluation enregistrée — dossier transmis au manager.');
+            }
+
+            if ($complaint->driver) {
+                // Manager inactif : enregistre la sévérité sans changer de step
+                return redirect()->route('com.complaints.show', $complaint)
+                    ->with('warning', 'Évaluation enregistrée. Le manager du chauffeur n\'est pas actif — sélectionnez un manager de remplacement ci-dessous.');
+            }
+
+            // Pas de chauffeur identifié : transmet sans manager assigné
+            $complaint->update(['step' => ComplaintStep::ManagerReview]);
+
+            return redirect()->route('com.complaints.show', $complaint)
+                ->with('success', 'Évaluation enregistrée — dossier transmis.');
+        }
+
+        $complaint->update(['step' => ComplaintStep::RHReview]);
+
         return redirect()->route('com.complaints.show', $complaint)
-            ->with('success', 'Évaluation enregistrée — dossier transmis.');
+            ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
     }
 }

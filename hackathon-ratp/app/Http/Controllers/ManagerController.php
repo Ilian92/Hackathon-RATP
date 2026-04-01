@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
+use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\User;
@@ -15,7 +16,7 @@ class ManagerController extends Controller
 {
     public function index(Request $request): View
     {
-        $driverIds = $request->user()->chauffeurs()->pluck('users.id');
+        $managerId = $request->user()->id;
         $tab = $request->string('tab')->toString() ?: 'pending';
 
         $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus'];
@@ -27,7 +28,7 @@ class ManagerController extends Controller
 
         $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent'])
             ->select('complaints.*')
-            ->whereIn('complaints.user_id', $driverIds)
+            ->where('complaints.manager_user_id', $managerId)
             ->when($tab === 'pending', fn ($q) => $q->where('complaints.step', ComplaintStep::ManagerReview))
             ->when($tab === 'rh', fn ($q) => $q->where('complaints.step', ComplaintStep::RHReview))
             ->when($tab === 'closed', fn ($q) => $q->where('complaints.step', ComplaintStep::Closed))
@@ -49,26 +50,33 @@ class ManagerController extends Controller
 
         $complaints = $query->paginate(20)->withQueryString();
         $complaintTypes = ComplaintType::orderBy('name')->get();
-        $drivers = $request->user()->chauffeurs()->orderBy('last_name')->orderBy('first_name')->get(['users.id', 'first_name', 'last_name']);
+        $drivers = User::where('role', UserRole::Chauffeur)
+            ->whereIn('id', Complaint::where('manager_user_id', $managerId)->pluck('user_id')->filter())
+            ->orderBy('last_name')->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name']);
 
         $counts = [
-            'pending' => Complaint::whereIn('user_id', $driverIds)->where('step', ComplaintStep::ManagerReview)->count(),
-            'rh' => Complaint::whereIn('user_id', $driverIds)->where('step', ComplaintStep::RHReview)->count(),
-            'closed' => Complaint::whereIn('user_id', $driverIds)->where('step', ComplaintStep::Closed)->count(),
+            'pending' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::ManagerReview)->count(),
+            'rh' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::RHReview)->count(),
+            'closed' => Complaint::where('manager_user_id', $managerId)->where('step', ComplaintStep::Closed)->count(),
         ];
 
         return view('manager.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter'));
     }
 
-    public function show(Complaint $complaint): View
+    public function show(Complaint $complaint, Request $request): View
     {
+        abort_unless($complaint->manager_user_id === $request->user()->id, 403);
+
         $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent']);
 
         return view('manager.complaints.show', compact('complaint'));
     }
 
-    public function forwardToRh(Complaint $complaint): RedirectResponse
+    public function forwardToRh(Complaint $complaint, Request $request): RedirectResponse
     {
+        abort_unless($complaint->manager_user_id === $request->user()->id, 403);
+
         if ($complaint->step !== ComplaintStep::ManagerReview) {
             return back()->with('error', 'Action non disponible pour ce dossier.');
         }
@@ -98,8 +106,10 @@ class ManagerController extends Controller
         ));
     }
 
-    public function close(Complaint $complaint): RedirectResponse
+    public function close(Complaint $complaint, Request $request): RedirectResponse
     {
+        abort_unless($complaint->manager_user_id === $request->user()->id, 403);
+
         if ($complaint->step !== ComplaintStep::ManagerReview) {
             return back()->with('error', 'Action non disponible pour ce dossier.');
         }

@@ -439,6 +439,44 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
+        // --- Cas de test : chauffeur avec manager inactif (pour tester le remplacement) ---
+        $inactiveManager = User::factory()->role(UserRole::Manager)->create([
+            'first_name' => 'Thomas',
+            'last_name' => 'Blanc',
+            'email' => 'manager.absent@ratp.fr',
+            'matricule' => 'RATP-MGR002',
+            'status' => UserStatus::EnVacances,
+        ]);
+        $centreLagny->users()->attach($inactiveManager->id);
+
+        $driverOfInactiveManager = User::factory()->chauffeur()->create([
+            'first_name' => 'Lucas',
+            'last_name' => 'Martin',
+            'email' => 'chauffeur.remplacant@ratp.fr',
+            'matricule' => 'RATP-CHF002',
+            'status' => UserStatus::Actif,
+        ]);
+        $driverOfInactiveManager->managers()->attach($inactiveManager->id);
+
+        $inactiveManagerComplaint = Complaint::factory()->create([
+            'user_id' => $driverOfInactiveManager->id,
+            'bus_id' => $buses->random()->id,
+            'complaint_type_id' => $complaintTypes->random()->id,
+            'client_id' => $clients->random()->id,
+            'step' => ComplaintStep::ComReview,
+            'status' => ComplaintStatus::EnCours,
+            'com_user_id' => $testCom->id,
+            'incident_time' => now()->subDays(2),
+            'description' => 'Comportement irrespectueux envers une personne âgée lors de la montée dans le bus. Plusieurs témoins présents.',
+        ]);
+
+        Severity::create([
+            'complaint_id' => $inactiveManagerComplaint->id,
+            'user_id' => $testCom->id,
+            'level' => 2,
+            'justification' => 'Incident confirmé par trois témoins. Le chauffeur a refusé d\'attendre qu\'une passagère âgée soit assise avant de redémarrer. Aucun antécédent similaire dans les 12 derniers mois.',
+        ]);
+
         foreach ($managerComplaintsData as $data) {
             $severity = $data['severity'];
 
@@ -450,6 +488,7 @@ class DatabaseSeeder extends Seeder
                 'step' => $data['step'],
                 'status' => $data['status'],
                 'com_user_id' => $testCom->id,
+                'manager_user_id' => $testManager->id,
                 'incident_time' => $data['incident_time'],
             ]);
 

@@ -21,6 +21,28 @@
         </div>
     @endif
 
+    @if (session('warning'))
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div class="rounded-xl bg-orange-50 border border-orange-200 p-4 text-sm text-orange-700 flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                {{ session('warning') }}
+            </div>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                {{ session('error') }}
+            </div>
+        </div>
+    @endif
+
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         <x-complaint-detail :complaint="$complaint" />
@@ -101,6 +123,31 @@
                     <x-primary-button x-bind:disabled="level === null">
                         Enregistrer et transmettre
                     </x-primary-button>
+                </form>
+            </div>
+        @endif
+
+        {{-- Manager de remplacement (manager inactif) --}}
+        @if ($isMyDossier && $complaint->step->value === 'ComReview' && $substituteManagers->isNotEmpty())
+            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-6">
+                <h2 class="text-sm font-semibold text-orange-600 uppercase tracking-wide mb-1">Manager indisponible</h2>
+                <p class="text-sm text-gray-600 mb-5">
+                    Le manager habituel du chauffeur n'est pas actif. Sélectionnez un manager de remplacement actif rattaché au même centre bus pour transmettre le dossier.
+                </p>
+
+                <form method="POST" action="{{ route('com.complaints.forward-manager', $complaint) }}" class="flex items-end gap-3">
+                    @csrf
+                    <div class="flex-1">
+                        <label for="manager_id" class="block text-xs font-medium text-gray-500 mb-1">Manager de remplacement</label>
+                        <select id="manager_id" name="manager_id" required
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
+                            <option value="">-- Sélectionner un manager --</option>
+                            @foreach ($substituteManagers as $manager)
+                                <option value="{{ $manager->id }}">{{ $manager->first_name }} {{ $manager->last_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <x-primary-button>Transmettre</x-primary-button>
                 </form>
             </div>
         @endif

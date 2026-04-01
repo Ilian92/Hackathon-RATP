@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['description', 'status', 'step', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id', 'com_user_id', 'rh_user_id'])]
+#[Fillable(['description', 'status', 'step', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id', 'com_user_id', 'manager_user_id', 'rh_user_id'])]
 class Complaint extends Model
 {
     use HasFactory;
@@ -58,6 +58,12 @@ class Complaint extends Model
     public function comAgent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'com_user_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function managerAgent(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manager_user_id');
     }
 
     /** @return BelongsTo<User, $this> */

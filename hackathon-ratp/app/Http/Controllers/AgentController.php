@@ -35,12 +35,12 @@ class AgentController extends Controller
 
         $satisfactionStats = $user->satisfactions()->selectRaw('AVG(note) as average, COUNT(*) as total')->first();
 
-        $avgSur5   = ($satisfactionStats?->average ?? 0) / 2;
+        $avgSur5 = ($satisfactionStats?->average ?? 0) / 2;
         $totalAvis = $satisfactionStats?->total ?? 0;
 
         // Score interne calculé sur toutes les plaintes (métrique interne)
         $allAboutiesCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
-        $scoreInterne     = round($avgSur5 * 0.7 + (5 - min($allAboutiesCount, 5)) * 0.3, 1);
+        $scoreInterne = round($avgSur5 * 0.7 + (5 - min($allAboutiesCount, 5)) * 0.3, 1);
 
         // Seules les plaintes traitées par le manager sont visibles par le chauffeur
         $visibleComplaints = $user->complaints->filter(
@@ -48,8 +48,8 @@ class AgentController extends Controller
         );
 
         $aboutiesCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
-        $enCoursCount  = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
-        $closCount     = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+        $enCoursCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
+        $closCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
 
         return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne', 'visibleComplaints');
     }
@@ -59,7 +59,7 @@ class AgentController extends Controller
     {
         $user->load(['chauffeurs.complaints', 'chauffeurs.sanctions']);
 
-        $pendingComplaints = Complaint::whereIn('user_id', $user->chauffeurs->pluck('id'))
+        $pendingComplaints = Complaint::where('manager_user_id', $user->id)
             ->where('step', ComplaintStep::ManagerReview)
             ->with(['complaintType', 'bus', 'driver', 'severity'])
             ->latest('incident_time')
