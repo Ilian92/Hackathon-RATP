@@ -74,13 +74,14 @@
         @if ($isMyDossier && $complaint->step->value === 'ComReview')
             @php
                 $severityLabels = [
-                    0 => ['label' => 'Négligeable', 'desc' => 'Dossier annulé',                       'color' => 'border-green-200 bg-green-50 text-green-700'],
-                    1 => ['label' => 'Faible',       'desc' => 'Transmis au Manager',                  'color' => 'border-lime-200 bg-lime-50 text-lime-700'],
-                    2 => ['label' => 'Modérée',      'desc' => 'Transmis au Manager',                  'color' => 'border-yellow-200 bg-yellow-50 text-yellow-700'],
-                    3 => ['label' => 'Grave',        'desc' => 'Transmis directement au RH',            'color' => 'border-orange-200 bg-orange-50 text-orange-700'],
-                    4 => ['label' => 'Critique',     'desc' => 'Transmis directement au RH',            'color' => 'border-red-200 bg-red-50 text-red-700'],
+                    0 => ['label' => 'Négligeable', 'desc' => 'Dossier annulé',              'color' => 'border-green-200 bg-green-50 text-green-700'],
+                    1 => ['label' => 'Faible',       'desc' => 'Transmis au Manager',         'color' => 'border-lime-200 bg-lime-50 text-lime-700'],
+                    2 => ['label' => 'Modérée',      'desc' => 'Transmis au Manager',         'color' => 'border-yellow-200 bg-yellow-50 text-yellow-700'],
+                    3 => ['label' => 'Grave',        'desc' => 'Transmis directement au RH',  'color' => 'border-orange-200 bg-orange-50 text-orange-700'],
+                    4 => ['label' => 'Critique',     'desc' => 'Transmis directement au RH',  'color' => 'border-red-200 bg-red-50 text-red-700'],
                 ];
                 $currentLevel = $complaint->severity?->level;
+                $hasSubstituteManagers = $substituteManagers->isNotEmpty();
             @endphp
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -112,10 +113,33 @@
                         <x-input-error :messages="$errors->get('justification')" class="mt-2" />
                     </div>
 
+                    @if ($hasSubstituteManagers)
+                        <div x-show="level === 1 || level === 2" x-cloak class="mb-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
+                            <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1">Manager habituel indisponible</p>
+                            <p class="text-xs text-orange-600 mb-3">Le manager du chauffeur n'est pas actif. Sélectionnez un manager de remplacement pour ce dossier.</p>
+                            <label for="manager_id" class="block text-xs font-medium text-gray-600 mb-1">Manager de remplacement</label>
+                            <select id="manager_id" name="manager_id"
+                                    x-bind:required="level === 1 || level === 2"
+                                    class="block w-full rounded-lg border-orange-200 bg-white shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
+                                <option value="">-- Sélectionner un manager --</option>
+                                @foreach ($substituteManagers as $manager)
+                                    <option value="{{ $manager->id }}" @selected(old('manager_id') == $manager->id)>
+                                        {{ $manager->first_name }} {{ $manager->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('manager_id')" class="mt-2" />
+                        </div>
+                    @endif
+
                     <div x-show="level !== null" x-cloak>
                         <p class="text-xs text-gray-500 mb-3">
                             <span x-show="level === 0">Le dossier sera <strong>annulé</strong>.</span>
-                            <span x-show="level === 1 || level === 2">Le dossier sera transmis au <strong>Manager</strong> responsable du chauffeur.</span>
+                            @if ($hasSubstituteManagers)
+                                <span x-show="level === 1 || level === 2">Le dossier sera transmis au <strong>manager de remplacement</strong> sélectionné.</span>
+                            @else
+                                <span x-show="level === 1 || level === 2">Le dossier sera transmis au <strong>Manager</strong> responsable du chauffeur.</span>
+                            @endif
                             <span x-show="level === 3 || level === 4">Le dossier sera transmis directement au <strong>service RH</strong>. Le Manager sera notifié.</span>
                         </p>
                     </div>
@@ -123,31 +147,6 @@
                     <x-primary-button x-bind:disabled="level === null">
                         Enregistrer et transmettre
                     </x-primary-button>
-                </form>
-            </div>
-        @endif
-
-        {{-- Manager de remplacement (manager inactif) --}}
-        @if ($isMyDossier && $complaint->step->value === 'ComReview' && $substituteManagers->isNotEmpty())
-            <div class="bg-white rounded-2xl shadow-sm border border-orange-200 p-6">
-                <h2 class="text-sm font-semibold text-orange-600 uppercase tracking-wide mb-1">Manager indisponible</h2>
-                <p class="text-sm text-gray-600 mb-5">
-                    Le manager habituel du chauffeur n'est pas actif. Sélectionnez un manager de remplacement actif rattaché au même centre bus pour transmettre le dossier.
-                </p>
-
-                <form method="POST" action="{{ route('com.complaints.forward-manager', $complaint) }}" class="flex items-end gap-3">
-                    @csrf
-                    <div class="flex-1">
-                        <label for="manager_id" class="block text-xs font-medium text-gray-500 mb-1">Manager de remplacement</label>
-                        <select id="manager_id" name="manager_id" required
-                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
-                            <option value="">-- Sélectionner un manager --</option>
-                            @foreach ($substituteManagers as $manager)
-                                <option value="{{ $manager->id }}">{{ $manager->first_name }} {{ $manager->last_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <x-primary-button>Transmettre</x-primary-button>
                 </form>
             </div>
         @endif

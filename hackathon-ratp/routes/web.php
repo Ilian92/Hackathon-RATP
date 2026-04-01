@@ -32,7 +32,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/complaints/{complaint}', [ComController::class, 'show'])->name('complaints.show');
         Route::post('/complaints/{complaint}/claim', [ComController::class, 'claim'])->name('complaints.claim');
         Route::post('/complaints/{complaint}/severity', [ComController::class, 'assignSeverity'])->name('complaints.severity');
-        Route::post('/complaints/{complaint}/forward-manager', [ComController::class, 'forwardToManager'])->name('complaints.forward-manager');
     });
 
     Route::prefix('manager')->name('manager.')->group(function () {

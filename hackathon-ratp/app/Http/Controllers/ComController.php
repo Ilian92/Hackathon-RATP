@@ -108,36 +108,6 @@ class ComController extends Controller
             ->with('success', 'Dossier pris en charge.');
     }
 
-    public function forwardToManager(Request $request, Complaint $complaint): RedirectResponse
-    {
-        if ($complaint->com_user_id !== $request->user()->id || $complaint->step !== ComplaintStep::ComReview || ! $complaint->severity) {
-            abort(403);
-        }
-
-        $managerId = $request->integer('manager_id');
-
-        $complaint->load('driver.managers.centreBuses');
-        $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
-
-        $manager = User::where('id', $managerId)
-            ->where('role', UserRole::Manager)
-            ->where('status', UserStatus::Actif)
-            ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
-            ->first();
-
-        if (! $manager) {
-            return back()->with('error', 'Manager invalide ou non disponible.');
-        }
-
-        $complaint->update([
-            'step' => ComplaintStep::ManagerReview,
-            'manager_user_id' => $manager->id,
-        ]);
-
-        return redirect()->route('com.complaints.show', $complaint)
-            ->with('success', 'Dossier transmis au manager de remplacement.');
-    }
-
     public function assignSeverity(AssignSeverityRequest $request, Complaint $complaint): RedirectResponse
     {
         if ($complaint->com_user_id !== $request->user()->id) {
@@ -168,7 +138,7 @@ class ComController extends Controller
         }
 
         if ($level <= 2) {
-            $complaint->load('driver.managers');
+            $complaint->load('driver.managers.centreBuses');
             $activeManager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
 
             if ($activeManager) {
@@ -182,9 +152,26 @@ class ComController extends Controller
             }
 
             if ($complaint->driver) {
-                // Manager inactif : enregistre la sévérité sans changer de step
+                // Manager inactif : valider et utiliser le manager de remplacement fourni
+                $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
+
+                $substituteManager = User::where('id', $request->integer('manager_id'))
+                    ->where('role', UserRole::Manager)
+                    ->where('status', UserStatus::Actif)
+                    ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
+                    ->first();
+
+                if (! $substituteManager) {
+                    return back()->withErrors(['manager_id' => 'Veuillez sélectionner un manager de remplacement valide.'])->withInput();
+                }
+
+                $complaint->update([
+                    'step' => ComplaintStep::ManagerReview,
+                    'manager_user_id' => $substituteManager->id,
+                ]);
+
                 return redirect()->route('com.complaints.show', $complaint)
-                    ->with('warning', 'Évaluation enregistrée. Le manager du chauffeur n\'est pas actif — sélectionnez un manager de remplacement ci-dessous.');
+                    ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');
             }
 
             // Pas de chauffeur identifié : transmet sans manager assigné
