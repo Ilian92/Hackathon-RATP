@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
 use App\Models\Complaint;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,25 @@ class ManagerController extends Controller
 
         return redirect()->route('manager.complaints.show', $complaint)
             ->with('success', 'Dossier transmis au service RH.');
+    }
+
+    public function showDriver(User $user, Request $request): View
+    {
+        abort_unless($request->user()->chauffeurs()->where('users.id', $user->id)->exists(), 403);
+
+        $user->load(['complaints.complaintType', 'complaints.bus', 'gratifications', 'sanctions', 'managers']);
+
+        $satisfactionStats = $user->satisfactions()->selectRaw('AVG(note) as average, COUNT(*) as total')->first();
+        $avgSur5 = ($satisfactionStats?->average ?? 0) / 2;
+        $totalAvis = $satisfactionStats?->total ?? 0;
+        $aboutiesCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
+        $enCoursCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
+        $closCount = $user->complaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+        $scoreInterne = round($avgSur5 * 0.7 + (5 - min($aboutiesCount, 5)) * 0.3, 1);
+
+        return view('manager.drivers.show', compact(
+            'user', 'avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne'
+        ));
     }
 
     public function close(Complaint $complaint): RedirectResponse

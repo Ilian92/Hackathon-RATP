@@ -222,7 +222,8 @@
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($user->chauffeurs as $chauffeur)
-                            <div class="px-5 py-3 flex items-center justify-between gap-4">
+                            <a href="{{ route('manager.drivers.show', $chauffeur) }}"
+                               class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-[#004fa3]/10 flex items-center justify-center shrink-0">
                                         <span class="text-xs font-bold text-[#004fa3]">
@@ -238,7 +239,7 @@
                                     <span>{{ $chauffeur->complaints->count() }} plaintes</span>
                                     <span>{{ $chauffeur->sanctions->count() }} sanctions</span>
                                 </div>
-                            </div>
+                            </a>
                         @empty
                             <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun chauffeur dans l'équipe</p>
                         @endforelse

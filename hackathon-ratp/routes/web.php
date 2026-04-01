@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/complaints/{complaint}', [ManagerController::class, 'show'])->name('complaints.show');
         Route::post('/complaints/{complaint}/forward-rh', [ManagerController::class, 'forwardToRh'])->name('complaints.forward-rh');
         Route::post('/complaints/{complaint}/close', [ManagerController::class, 'close'])->name('complaints.close');
+        Route::get('/drivers/{user}', [ManagerController::class, 'showDriver'])->name('drivers.show');
     });
 
     Route::prefix('rh')->name('rh.')->group(function () {
