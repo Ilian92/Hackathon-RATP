@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('manager.complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+            <a href="{{ route('complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -30,14 +30,14 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action</h2>
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <form method="POST" action="{{ route('manager.complaints.forward-rh', $complaint) }}">
+                        <form method="POST" action="{{ route('complaints.forward-rh', $complaint) }}">
                             @csrf
                             <button type="submit"
                                     class="w-full sm:w-auto px-5 py-2.5 bg-[#004fa3] hover:bg-[#003d80] text-white text-sm font-semibold rounded-xl transition shadow-sm">
                                 Transmettre au service RH
                             </button>
                         </form>
-                        <form method="POST" action="{{ route('manager.complaints.close', $complaint) }}">
+                        <form method="POST" action="{{ route('complaints.close', $complaint) }}">
                             @csrf
                             <button type="submit"
                                     class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">

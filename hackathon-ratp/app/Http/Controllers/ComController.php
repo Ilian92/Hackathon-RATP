@@ -104,7 +104,7 @@ class ComController extends Controller
 
         $complaint->update(['com_user_id' => $request->user()->id]);
 
-        return redirect()->route('com.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier pris en charge.');
     }
 
@@ -133,7 +133,7 @@ class ComController extends Controller
                 'status' => ComplaintStatus::Clos,
             ]);
 
-            return redirect()->route('com.complaints.show', $complaint)
+            return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Évaluation enregistrée — dossier annulé.');
         }
 
@@ -147,7 +147,7 @@ class ComController extends Controller
                     'manager_user_id' => $activeManager->id,
                 ]);
 
-                return redirect()->route('com.complaints.show', $complaint)
+                return redirect()->route('complaints.show', $complaint)
                     ->with('success', 'Évaluation enregistrée — dossier transmis au manager.');
             }
 
@@ -170,20 +170,20 @@ class ComController extends Controller
                     'manager_user_id' => $substituteManager->id,
                 ]);
 
-                return redirect()->route('com.complaints.show', $complaint)
+                return redirect()->route('complaints.show', $complaint)
                     ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');
             }
 
             // Pas de chauffeur identifié : transmet sans manager assigné
             $complaint->update(['step' => ComplaintStep::ManagerReview]);
 
-            return redirect()->route('com.complaints.show', $complaint)
+            return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Évaluation enregistrée — dossier transmis.');
         }
 
         $complaint->update(['step' => ComplaintStep::RHReview]);
 
-        return redirect()->route('com.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
     }
 }

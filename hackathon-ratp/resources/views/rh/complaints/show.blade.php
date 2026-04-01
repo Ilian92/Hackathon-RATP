@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('rh.complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+            <a href="{{ route('complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -32,7 +32,7 @@
                         <p class="font-medium text-gray-900">Ce dossier est disponible</p>
                         <p class="text-sm text-gray-500 mt-0.5">Prenez-le en charge pour ouvrir la procédure disciplinaire.</p>
                     </div>
-                    <form method="POST" action="{{ route('rh.complaints.claim', $complaint) }}">
+                    <form method="POST" action="{{ route('complaints.claim', $complaint) }}">
                         @csrf
                         <x-primary-button>Prendre en charge</x-primary-button>
                     </form>
@@ -40,7 +40,7 @@
             @elseif ($complaint->rh_user_id === auth()->id())
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action disciplinaire</h2>
-                    <form method="POST" action="{{ route('rh.complaints.close', $complaint) }}">
+                    <form method="POST" action="{{ route('complaints.close', $complaint) }}">
                         @csrf
                         <p class="text-sm text-gray-600 mb-4">
                             Clôturer ce dossier marquera la plainte comme <strong>aboutie</strong> et mettra fin à la procédure.

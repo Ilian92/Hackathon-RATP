@@ -89,7 +89,7 @@ class ManagerController extends Controller
 
         $complaint->update(['step' => ComplaintStep::RHReview]);
 
-        return redirect()->route('manager.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier transmis au service RH.');
     }
 
@@ -125,7 +125,7 @@ class ManagerController extends Controller
             'status' => ComplaintStatus::Clos,
         ]);
 
-        return redirect()->route('manager.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier clôturé.');
     }
 }

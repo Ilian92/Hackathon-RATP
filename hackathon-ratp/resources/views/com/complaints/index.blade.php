@@ -8,7 +8,7 @@
         <div class="flex flex-wrap gap-3 items-center justify-between">
             <div class="flex gap-1 bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
                 @foreach (['available' => 'Disponibles', 'mine' => 'Mes dossiers', 'done' => 'Traités'] as $value => $label)
-                    <a href="{{ route('com.complaints.index', array_filter(['tab' => $value, 'type' => $typeId, 'driver_id' => $driverFilter, 'severity' => $severityFilter], fn ($v) => $v !== null && $v !== '')) }}"
+                    <a href="{{ route('complaints.index', array_filter(['tab' => $value, 'type' => $typeId, 'driver_id' => $driverFilter, 'severity' => $severityFilter], fn ($v) => $v !== null && $v !== '')) }}"
                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition
                               {{ $tab === $value ? 'bg-[#004fa3] text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}">
                         {{ $label }}
@@ -22,7 +22,7 @@
         </div>
 
         <x-filter-bar
-            :action="route('com.complaints.index')"
+            :action="route('complaints.index')"
             :tab="$tab"
             :sort="$sort"
             :direction="$direction"
@@ -41,7 +41,7 @@
                 'severity'  => $severityFilter,
             ], fn ($v) => $v !== null && $v !== '');
 
-            $sortUrl = fn (string $col) => route('com.complaints.index', array_merge($currentFilters, [
+            $sortUrl = fn (string $col) => route('complaints.index', array_merge($currentFilters, [
                 'sort'      => $col,
                 'direction' => $sort === $col && $direction === 'asc' ? 'desc' : 'asc',
             ]));
@@ -85,7 +85,7 @@
                                 {{ $complaint->comAgent ? $complaint->comAgent->first_name.' '.$complaint->comAgent->last_name : '—' }}
                             </td>
                             <td class="px-5 py-4 text-right">
-                                <a href="{{ route('com.complaints.show', $complaint) }}"
+                                <a href="{{ route('complaints.show', $complaint) }}"
                                    class="text-[#004fa3] hover:text-[#003d80] font-medium text-xs">Voir →</a>
                             </td>
                         </tr>

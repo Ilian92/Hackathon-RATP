@@ -208,13 +208,13 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                         <p class="text-sm font-semibold text-gray-700">Dossiers en attente de décision</p>
-                        <a href="{{ route('manager.complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                        <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($pendingComplaints as $complaint)
-                            <a href="{{ route('manager.complaints.show', $complaint) }}"
+                            <a href="{{ route('complaints.show', $complaint) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
@@ -243,7 +243,7 @@
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($user->chauffeurs as $chauffeur)
-                            <a href="{{ route('manager.drivers.show', $chauffeur) }}"
+                            <a href="{{ route('drivers.show', $chauffeur) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-[#004fa3]/10 flex items-center justify-center shrink-0">
@@ -272,13 +272,13 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                         <p class="text-sm font-semibold text-gray-700">Plaintes disponibles</p>
-                        <a href="{{ route('com.complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                        <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir toutes →
                         </a>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($availableComplaints as $complaint)
-                            <a href="{{ route('com.complaints.show', $complaint) }}"
+                            <a href="{{ route('complaints.show', $complaint) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
@@ -298,13 +298,13 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                         <p class="text-sm font-semibold text-gray-700">Mes dossiers en cours</p>
-                        <a href="{{ route('com.complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                        <a href="{{ route('complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($myComplaints as $complaint)
-                            <a href="{{ route('com.complaints.show', $complaint) }}"
+                            <a href="{{ route('complaints.show', $complaint) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
@@ -328,13 +328,13 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                         <p class="text-sm font-semibold text-gray-700">Dossiers RH disponibles</p>
-                        <a href="{{ route('rh.complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                        <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($availableComplaints as $complaint)
-                            <a href="{{ route('rh.complaints.show', $complaint) }}"
+                            <a href="{{ route('complaints.show', $complaint) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
@@ -359,13 +359,13 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                         <p class="text-sm font-semibold text-gray-700">Mes dossiers en cours</p>
-                        <a href="{{ route('rh.complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                        <a href="{{ route('complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($myComplaints as $complaint)
-                            <a href="{{ route('rh.complaints.show', $complaint) }}"
+                            <a href="{{ route('complaints.show', $complaint) }}"
                                class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>

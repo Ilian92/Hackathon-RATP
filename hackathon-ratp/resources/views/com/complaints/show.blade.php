@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('com.complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+            <a href="{{ route('complaints.index') }}" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -56,7 +56,7 @@
                     <p class="font-medium text-gray-900">Ce dossier est disponible</p>
                     <p class="text-sm text-gray-500 mt-0.5">Prenez-le en charge pour l'évaluer. Il vous sera exclusivement attribué.</p>
                 </div>
-                <form method="POST" action="{{ route('com.complaints.claim', $complaint) }}">
+                <form method="POST" action="{{ route('complaints.claim', $complaint) }}">
                     @csrf
                     <x-primary-button>Prendre en charge</x-primary-button>
                 </form>
@@ -87,7 +87,7 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Évaluation de la gravité</h2>
 
-                <form method="POST" action="{{ route('com.complaints.severity', $complaint) }}" x-data="{ level: {{ $currentLevel ?? 'null' }} }">
+                <form method="POST" action="{{ route('complaints.severity', $complaint) }}" x-data="{ level: {{ $currentLevel ?? 'null' }} }">
                     @csrf
 
                     <div class="grid grid-cols-5 gap-2 mb-5">

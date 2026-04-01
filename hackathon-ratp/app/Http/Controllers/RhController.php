@@ -75,7 +75,7 @@ class RhController extends Controller
 
         $complaint->update(['rh_user_id' => $request->user()->id]);
 
-        return redirect()->route('rh.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier pris en charge.');
     }
 
@@ -90,7 +90,7 @@ class RhController extends Controller
             'status' => ComplaintStatus::Abouti,
         ]);
 
-        return redirect()->route('rh.complaints.show', $complaint)
+        return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier clôturé — plainte aboutie.');
     }
 }
