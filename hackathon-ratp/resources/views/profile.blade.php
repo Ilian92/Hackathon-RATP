@@ -62,17 +62,15 @@
                         {{ $user->contract_start_date?->format('d/m/Y') ?? '—' }}
                     </p>
                 </div>
+                @if ($user->managers->isNotEmpty())
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Manager</p>
-                    @if ($user->managers->isNotEmpty())
-                        @foreach ($user->managers as $manager)
-                            <p class="text-sm font-medium text-gray-700 mt-0.5">{{ $manager->first_name }} {{ $manager->last_name }}</p>
-                            <p class="text-xs text-gray-400">{{ $manager->email }}</p>
-                        @endforeach
-                    @else
-                        <p class="text-sm text-gray-400 mt-0.5">—</p>
-                    @endif
+                    @foreach ($user->managers as $manager)
+                        <p class="text-sm font-medium text-gray-700 mt-0.5">{{ $manager->first_name }} {{ $manager->last_name }}</p>
+                        <p class="text-xs text-gray-400">{{ $manager->email }}</p>
+                    @endforeach
                 </div>
+                @endif
             </div>
 
             {{-- Scores — Chauffeur uniquement --}}
