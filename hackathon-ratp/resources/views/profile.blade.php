@@ -45,6 +45,16 @@
                 </div>
             </div>
 
+            <div class="px-6 py-3 border-b border-gray-100">
+                <a href="{{ route('profile.edit') }}"
+                   class="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-[#004fa3] bg-white border border-[#004fa3]/30 rounded-xl hover:bg-[#004fa3]/5 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Modifier mon profil
+                </a>
+            </div>
+
             <div class="px-6 py-4 border-b border-gray-100 space-y-3">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Début de contrat</p>

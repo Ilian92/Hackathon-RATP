@@ -28,7 +28,7 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
+                        <x-dropdown-link :href="route('profile')">
                             Profil
                         </x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
