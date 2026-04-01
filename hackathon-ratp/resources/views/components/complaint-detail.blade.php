@@ -93,7 +93,11 @@
         </div>
         <div>
             <p class="text-xs text-gray-400 uppercase tracking-wide">Usager</p>
-            <p class="mt-1 font-medium text-gray-800">{{ $complaint->client->email }}</p>
+            @if (auth()->user()->role === \App\Enums\UserRole::RH)
+                <p class="mt-1 font-medium text-gray-800">{{ $complaint->client->email }}</p>
+            @else
+                <p class="mt-1 text-sm text-gray-400 italic">Confidentiel — accès RH uniquement</p>
+            @endif
         </div>
     </div>
 </div>
