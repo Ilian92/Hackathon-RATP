@@ -3,11 +3,11 @@
         <h1 class="text-lg font-semibold text-gray-900">Dossiers RH</h1>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
 
         <div class="flex gap-1 bg-white rounded-xl border border-gray-200 p-1 w-fit shadow-sm">
             @foreach (['available' => 'Disponibles', 'mine' => 'Mes dossiers', 'closed' => 'Traités'] as $value => $label)
-                <a href="{{ route('rh.complaints.index', ['tab' => $value]) }}"
+                <a href="{{ route('rh.complaints.index', array_filter(['tab' => $value, 'type' => $typeId, 'driver_id' => $driverFilter, 'severity' => $severityFilter], fn ($v) => $v !== null && $v !== '')) }}"
                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition
                           {{ $tab === $value ? 'bg-[#004fa3] text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}">
                     {{ $label }}
@@ -19,12 +19,30 @@
             @endforeach
         </div>
 
+        <x-filter-bar
+            :action="route('rh.complaints.index')"
+            :tab="$tab"
+            :sort="$sort"
+            :direction="$direction"
+            :complaint-types="$complaintTypes"
+            :drivers="$drivers"
+            :type-id="$typeId"
+            :severity-filter="$severityFilter"
+            :driver-filter="$driverFilter"
+        />
+
         @php
-            $sortUrl = fn (string $col) => route('rh.complaints.index', [
+            $currentFilters = array_filter([
                 'tab'       => $tab,
+                'type'      => $typeId,
+                'driver_id' => $driverFilter,
+                'severity'  => $severityFilter,
+            ], fn ($v) => $v !== null && $v !== '');
+
+            $sortUrl = fn (string $col) => route('rh.complaints.index', array_merge($currentFilters, [
                 'sort'      => $col,
                 'direction' => $sort === $col && $direction === 'asc' ? 'desc' : 'asc',
-            ]);
+            ]));
         @endphp
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

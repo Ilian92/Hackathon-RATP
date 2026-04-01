@@ -3,13 +3,12 @@
         <h1 class="text-lg font-semibold text-gray-900">Gestion des plaintes — Service Com</h1>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
 
         <div class="flex flex-wrap gap-3 items-center justify-between">
-            {{-- Tabs --}}
             <div class="flex gap-1 bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
                 @foreach (['available' => 'Disponibles', 'mine' => 'Mes dossiers', 'done' => 'Traités'] as $value => $label)
-                    <a href="{{ route('com.complaints.index', array_filter(['tab' => $value, 'type' => $typeId])) }}"
+                    <a href="{{ route('com.complaints.index', array_filter(['tab' => $value, 'type' => $typeId, 'driver_id' => $driverFilter, 'severity' => $severityFilter], fn ($v) => $v !== null && $v !== '')) }}"
                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition
                               {{ $tab === $value ? 'bg-[#004fa3] text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}">
                         {{ $label }}
@@ -20,24 +19,29 @@
                     </a>
                 @endforeach
             </div>
-
-            {{-- Filtre type --}}
-            <form method="GET" action="{{ route('com.complaints.index') }}" class="flex items-center gap-3">
-                <input type="hidden" name="tab" value="{{ $tab }}">
-                <select name="type" onchange="this.form.submit()"
-                        class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3]">
-                    <option value="">Tous les types</option>
-                    @foreach ($complaintTypes as $type)
-                        <option value="{{ $type->id }}" @selected($typeId === $type->id)>{{ $type->name }}</option>
-                    @endforeach
-                </select>
-            </form>
         </div>
 
+        <x-filter-bar
+            :action="route('com.complaints.index')"
+            :tab="$tab"
+            :sort="$sort"
+            :direction="$direction"
+            :complaint-types="$complaintTypes"
+            :drivers="$drivers"
+            :type-id="$typeId"
+            :severity-filter="$severityFilter"
+            :driver-filter="$driverFilter"
+        />
+
         @php
-            $sortUrl = fn (string $col) => route('com.complaints.index', array_filter([
+            $currentFilters = array_filter([
                 'tab'       => $tab,
                 'type'      => $typeId,
+                'driver_id' => $driverFilter,
+                'severity'  => $severityFilter,
+            ], fn ($v) => $v !== null && $v !== '');
+
+            $sortUrl = fn (string $col) => route('com.complaints.index', array_merge($currentFilters, [
                 'sort'      => $col,
                 'direction' => $sort === $col && $direction === 'asc' ? 'desc' : 'asc',
             ]));
@@ -82,9 +86,7 @@
                             </td>
                             <td class="px-5 py-4 text-right">
                                 <a href="{{ route('com.complaints.show', $complaint) }}"
-                                   class="text-[#004fa3] hover:text-[#003d80] font-medium text-xs">
-                                    Voir →
-                                </a>
+                                   class="text-[#004fa3] hover:text-[#003d80] font-medium text-xs">Voir →</a>
                             </td>
                         </tr>
                     @empty
