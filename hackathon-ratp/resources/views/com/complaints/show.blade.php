@@ -73,32 +73,76 @@
         {{-- Formulaire d'évaluation (uniquement si c'est mon dossier et pas encore transmis) --}}
         @if ($isMyDossier && $complaint->step->value === 'ComReview')
             @php
-                $severityLabels = [
-                    0 => ['label' => 'Négligeable', 'desc' => 'Dossier annulé',              'color' => 'border-green-200 bg-green-50 text-green-700'],
-                    1 => ['label' => 'Faible',       'desc' => 'Transmis au Manager',         'color' => 'border-lime-200 bg-lime-50 text-lime-700'],
-                    2 => ['label' => 'Modérée',      'desc' => 'Transmis au Manager',         'color' => 'border-yellow-200 bg-yellow-50 text-yellow-700'],
-                    3 => ['label' => 'Grave',        'desc' => 'Transmis directement au RH',  'color' => 'border-orange-200 bg-orange-50 text-orange-700'],
-                    4 => ['label' => 'Critique',     'desc' => 'Transmis directement au RH',  'color' => 'border-red-200 bg-red-50 text-red-700'],
-                ];
                 $currentLevel = $complaint->severity?->level;
+                $currentNegative = $complaint->negative;
                 $hasSubstituteManagers = $substituteManagers->isNotEmpty();
+                $initialNegative = $currentNegative === null ? 'null' : ($currentNegative ? 'true' : 'false');
             @endphp
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Évaluation de la gravité</h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+                 x-data="{ level: {{ $currentLevel ?? 'null' }}, negative: {{ $initialNegative }} }">
 
-                <form method="POST" action="{{ route('complaints.severity', $complaint) }}" x-data="{ level: {{ $currentLevel ?? 'null' }} }">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Qualification du signalement</h2>
+
+                {{-- Toggle positif / négatif --}}
+                <div class="mb-6">
+                    <p class="text-xs font-medium text-gray-600 mb-2">Nature du signalement</p>
+                    <div class="flex gap-3">
+                        <button type="button" @click="negative = false"
+                                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-semibold transition"
+                                :class="negative === false ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                            </svg>
+                            Signalement positif
+                        </button>
+                        <button type="button" @click="negative = true"
+                                class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-semibold transition"
+                                :class="negative === true ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                            </svg>
+                            Signalement négatif
+                        </button>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ route('complaints.severity', $complaint) }}">
                     @csrf
+                    <input type="hidden" name="negative" :value="negative === null ? '' : (negative ? '1' : '0')">
+
+                    {{-- Labels dynamiques selon la nature --}}
+                    <div class="mb-2">
+                        <p class="text-xs font-medium text-gray-600">
+                            <span x-show="negative === false">Intensité du signalement positif</span>
+                            <span x-show="negative === true || negative === null">Niveau de gravité</span>
+                        </p>
+                    </div>
 
                     <div class="grid grid-cols-5 gap-2 mb-5">
-                        @foreach ($severityLabels as $level => $info)
+                        @php
+                            $levels = [
+                                0 => ['negLabel' => 'Annuler',   'posLabel' => '',         'negColor' => 'border-green-200 bg-green-50 text-green-700', 'posColor' => 'border-green-200 bg-green-50 text-green-700'],
+                                1 => ['negLabel' => 'Faible',    'posLabel' => 'Léger',    'negColor' => 'border-lime-200 bg-lime-50 text-lime-700',   'posColor' => 'border-lime-200 bg-lime-50 text-lime-700'],
+                                2 => ['negLabel' => 'Modérée',   'posLabel' => 'Bien',     'negColor' => 'border-yellow-200 bg-yellow-50 text-yellow-700', 'posColor' => 'border-yellow-200 bg-yellow-50 text-yellow-700'],
+                                3 => ['negLabel' => 'Grave',     'posLabel' => 'Très bien','negColor' => 'border-orange-200 bg-orange-50 text-orange-700', 'posColor' => 'border-emerald-200 bg-emerald-50 text-emerald-700'],
+                                4 => ['negLabel' => 'Critique',  'posLabel' => 'Excellent','negColor' => 'border-red-200 bg-red-50 text-red-700',       'posColor' => 'border-emerald-200 bg-emerald-50 text-emerald-700'],
+                            ];
+                        @endphp
+                        @foreach ($levels as $lvl => $info)
                             <label class="cursor-pointer">
-                                <input type="radio" name="level" value="{{ $level }}" x-model.number="level" class="sr-only">
+                                <input type="radio" name="level" value="{{ $lvl }}" x-model.number="level" class="sr-only"
+                                       @if ($lvl === 0 && $currentNegative === false) disabled @endif>
                                 <div class="border-2 rounded-xl p-3 text-center transition"
-                                     :class="level === {{ $level }} ? '{{ $info['color'] }} border-current shadow-sm' : 'border-gray-200 hover:border-gray-300 text-gray-500'">
-                                    <p class="text-xl font-bold">{{ $level }}</p>
-                                    <p class="text-xs font-semibold mt-1">{{ $info['label'] }}</p>
-                                    <p class="text-xs mt-1 opacity-70 hidden sm:block">{{ $info['desc'] }}</p>
+                                     :class="[
+                                         level === {{ $lvl }} ? (negative === false ? '{{ $info['posColor'] }} border-current shadow-sm' : '{{ $info['negColor'] }} border-current shadow-sm') : 'border-gray-200 hover:border-gray-300 text-gray-500',
+                                         {{ $lvl }} === 0 && negative === false ? 'opacity-30 pointer-events-none' : ''
+                                     ]">
+                                    <p class="text-xl font-bold">{{ $lvl }}</p>
+                                    <p class="text-xs font-semibold mt-1">
+                                        <span x-show="negative === false">{{ $lvl === 0 ? '–' : $info['posLabel'] }}</span>
+                                        <span x-show="negative !== false">{{ $info['negLabel'] }}</span>
+                                    </p>
                                 </div>
                             </label>
                         @endforeach
@@ -109,17 +153,17 @@
                         <x-input-label for="justification" value="Justification" />
                         <textarea id="justification" name="justification" rows="4" required
                                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm"
-                                  placeholder="Expliquez pourquoi ce niveau de gravité a été attribué…">{{ old('justification', $complaint->severity?->justification) }}</textarea>
+                                  placeholder="Expliquez votre évaluation…">{{ old('justification', $complaint->severity?->justification) }}</textarea>
                         <x-input-error :messages="$errors->get('justification')" class="mt-2" />
                     </div>
 
                     @if ($hasSubstituteManagers)
-                        <div x-show="level === 1 || level === 2" x-cloak class="mb-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
+                        <div x-show="negative !== false && (level === 1 || level === 2)" x-cloak class="mb-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
                             <p class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1">Manager habituel indisponible</p>
                             <p class="text-xs text-orange-600 mb-3">Le manager du chauffeur n'est pas actif. Sélectionnez un manager de remplacement pour ce dossier.</p>
                             <label for="manager_id" class="block text-xs font-medium text-gray-600 mb-1">Manager de remplacement</label>
                             <select id="manager_id" name="manager_id"
-                                    x-bind:required="level === 1 || level === 2"
+                                    x-bind:required="negative !== false && (level === 1 || level === 2)"
                                     class="block w-full rounded-lg border-orange-200 bg-white shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
                                 <option value="">-- Sélectionner un manager --</option>
                                 @foreach ($substituteManagers as $manager)
@@ -132,19 +176,20 @@
                         </div>
                     @endif
 
-                    <div x-show="level !== null" x-cloak>
+                    <div x-show="level !== null && negative !== null" x-cloak>
                         <p class="text-xs text-gray-500 mb-3">
-                            <span x-show="level === 0">Le dossier sera <strong>annulé</strong>.</span>
+                            <span x-show="level === 0 && negative !== false">Le dossier sera <strong>annulé</strong>.</span>
+                            <span x-show="negative === false && level !== null && level > 0">Le dossier sera transmis directement au <strong>service RH</strong> pour récompenser le chauffeur.</span>
                             @if ($hasSubstituteManagers)
-                                <span x-show="level === 1 || level === 2">Le dossier sera transmis au <strong>manager de remplacement</strong> sélectionné.</span>
+                                <span x-show="negative !== false && (level === 1 || level === 2)">Le dossier sera transmis au <strong>manager de remplacement</strong> sélectionné.</span>
                             @else
-                                <span x-show="level === 1 || level === 2">Le dossier sera transmis au <strong>Manager</strong> responsable du chauffeur.</span>
+                                <span x-show="negative !== false && (level === 1 || level === 2)">Le dossier sera transmis au <strong>Manager</strong> responsable du chauffeur.</span>
                             @endif
-                            <span x-show="level === 3 || level === 4">Le dossier sera transmis directement au <strong>service RH</strong>. Le Manager sera notifié.</span>
+                            <span x-show="negative !== false && (level === 3 || level === 4)">Le dossier sera transmis directement au <strong>service RH</strong>.</span>
                         </p>
                     </div>
 
-                    <x-primary-button x-bind:disabled="level === null">
+                    <x-primary-button x-bind:disabled="level === null || negative === null">
                         Enregistrer et transmettre
                     </x-primary-button>
                 </form>

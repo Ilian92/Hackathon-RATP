@@ -87,6 +87,19 @@
                     </p>
                 </div>
             @endif
+        @elseif ($complaint->negative === false)
+            {{-- Signalement positif visible en lecture seule pour le manager --}}
+            <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-emerald-800">Signalement positif</p>
+                    <p class="text-sm text-emerald-600 mt-0.5">Ce dossier est un signalement positif concernant l'un de vos chauffeurs. Il est traité par le service RH.</p>
+                </div>
+            </div>
         @endif
 
     </div>

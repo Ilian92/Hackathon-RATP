@@ -7,6 +7,7 @@ use App\Enums\ComplaintStep;
 use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
+use App\Models\Gratification;
 use App\Models\Sanction;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -63,7 +64,7 @@ class RhController extends Controller
 
     public function show(Complaint $complaint): View
     {
-        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'sanction']);
+        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'sanction', 'gratification']);
 
         $drivers = $complaint->user_id === null
             ? User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
@@ -131,6 +132,36 @@ class RhController extends Controller
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier pris en charge.');
+    }
+
+    public function gratify(Complaint $complaint, Request $request): RedirectResponse
+    {
+        abort_unless($complaint->rh_user_id === $request->user()->id, 403);
+
+        if ($complaint->step !== ComplaintStep::RHReview || $complaint->negative !== false || $complaint->gratification !== null) {
+            return back()->with('error', 'Action non disponible pour ce dossier.');
+        }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:2000'],
+            'amount' => ['nullable', 'integer', 'min:0', 'max:10000'],
+        ]);
+
+        Gratification::create([
+            'user_id' => $complaint->user_id,
+            'complaint_id' => $complaint->id,
+            'reason' => $validated['reason'],
+            'amount' => $validated['amount'] ?? 0,
+            'awarded_at' => now()->toDateString(),
+        ]);
+
+        $complaint->update([
+            'step' => ComplaintStep::Closed,
+            'status' => ComplaintStatus::Abouti,
+        ]);
+
+        return redirect()->route('complaints.show', $complaint)
+            ->with('success', 'Gratification enregistrée — dossier clôturé.');
     }
 
     public function close(Complaint $complaint, Request $request): RedirectResponse

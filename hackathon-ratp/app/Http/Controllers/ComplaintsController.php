@@ -65,4 +65,12 @@ class ComplaintsController extends Controller
             default => abort(403),
         };
     }
+
+    public function gratify(Request $request, Complaint $complaint): RedirectResponse
+    {
+        return match ($request->user()->role) {
+            UserRole::RH => app(RhController::class)->gratify($complaint, $request),
+            default => abort(403),
+        };
+    }
 }

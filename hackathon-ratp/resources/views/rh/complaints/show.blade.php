@@ -55,7 +55,13 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-[#004fa3]/20 p-6 flex items-center justify-between gap-4">
                     <div>
                         <p class="font-medium text-gray-900">Ce dossier est disponible</p>
-                        <p class="text-sm text-gray-500 mt-0.5">Prenez-le en charge pour ouvrir la procédure disciplinaire.</p>
+                        <p class="text-sm text-gray-500 mt-0.5">
+                            @if ($complaint->negative === false)
+                                Prenez-le en charge pour récompenser le chauffeur.
+                            @else
+                                Prenez-le en charge pour ouvrir la procédure disciplinaire.
+                            @endif
+                        </p>
                     </div>
                     <form method="POST" action="{{ route('complaints.claim', $complaint) }}">
                         @csrf
@@ -63,22 +69,70 @@
                     </form>
                 </div>
             @elseif ($complaint->rh_user_id === auth()->id())
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action disciplinaire</h2>
-                    <form method="POST" action="{{ route('complaints.close', $complaint) }}">
-                        @csrf
-                        <p class="text-sm text-gray-600 mb-4">
-                            Clôturer sans sanction marquera la plainte comme <strong>aboutie</strong> et mettra fin à la procédure sans action disciplinaire.
-                        </p>
-                        <button type="submit"
-                                class="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
-                            Clôturer sans sanction
-                        </button>
-                    </form>
-                </div>
+                @if ($complaint->negative === false)
+                    {{-- Signalement positif : gratification --}}
+                    @if ($complaint->gratification === null)
+                        <div class="bg-white rounded-2xl shadow-sm border border-emerald-200 p-6">
+                            <h2 class="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-5">Récompenser le chauffeur</h2>
+                            <form method="POST" action="{{ route('complaints.gratify', $complaint) }}">
+                                @csrf
+                                <div class="mb-4">
+                                    <x-input-label for="reason" value="Motif de la gratification" />
+                                    <textarea id="reason" name="reason" rows="3" required
+                                              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-sm"
+                                              placeholder="Décrivez la raison de cette récompense…">{{ old('reason') }}</textarea>
+                                    <x-input-error :messages="$errors->get('reason')" class="mt-2" />
+                                </div>
+                                <div class="mb-5">
+                                    <x-input-label for="amount" value="Montant (€, optionnel)" />
+                                    <input type="number" id="amount" name="amount" min="0" max="10000"
+                                           value="{{ old('amount', 0) }}"
+                                           class="mt-1 block w-40 rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 text-sm" />
+                                    <x-input-error :messages="$errors->get('amount')" class="mt-2" />
+                                </div>
+                                <div class="flex gap-3">
+                                    <button type="submit"
+                                            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
+                                        Enregistrer la gratification
+                                    </button>
+                                    <form method="POST" action="{{ route('complaints.close', $complaint) }}">
+                                        @csrf
+                                        <button type="submit"
+                                                class="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
+                                            Clôturer sans gratification
+                                        </button>
+                                    </form>
+                                </div>
+                            </form>
+                        </div>
+                    @else
+                        <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
+                            <p class="text-sm font-semibold text-emerald-700 mb-1">Gratification enregistrée</p>
+                            <p class="text-sm text-emerald-600">{{ $complaint->gratification->reason }}</p>
+                            @if ($complaint->gratification->amount > 0)
+                                <p class="mt-1 text-sm text-emerald-600 font-medium">{{ number_format($complaint->gratification->amount, 0, ',', ' ') }} €</p>
+                            @endif
+                        </div>
+                    @endif
+                @else
+                    {{-- Signalement négatif : sanction --}}
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action disciplinaire</h2>
+                        <form method="POST" action="{{ route('complaints.close', $complaint) }}">
+                            @csrf
+                            <p class="text-sm text-gray-600 mb-4">
+                                Clôturer sans sanction marquera la plainte comme <strong>aboutie</strong> et mettra fin à la procédure sans action disciplinaire.
+                            </p>
+                            <button type="submit"
+                                    class="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
+                                Clôturer sans sanction
+                            </button>
+                        </form>
+                    </div>
 
-                @if ($complaint->sanction === null)
-                    <x-sanction-form :complaint="$complaint" />
+                    @if ($complaint->sanction === null)
+                        <x-sanction-form :complaint="$complaint" />
+                    @endif
                 @endif
             @else
                 <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6">

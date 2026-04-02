@@ -31,6 +31,7 @@ class ComplaintController extends Controller
             'idPlainte' => ['required', 'integer', 'exists:complaints,id'],
             'note' => ['required', 'integer', 'between:0,4'],
             'justification' => ['required', 'string', 'max:2000'],
+            'negative' => ['nullable', 'boolean'],
         ]);
 
         $complaint = Complaint::where('id', $validated['idPlainte'])
@@ -45,6 +46,10 @@ class ComplaintController extends Controller
             'level' => $validated['note'],
             'justification' => $validated['justification'],
         ]);
+
+        if (array_key_exists('negative', $validated)) {
+            $complaint->update(['negative' => $validated['negative']]);
+        }
 
         return response()->json(['message' => 'Sévérité enregistrée.'], 201);
     }

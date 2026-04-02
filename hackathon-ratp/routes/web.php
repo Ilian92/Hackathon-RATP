@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{complaint}/close', [ComplaintsController::class, 'close'])->name('close');
         Route::post('/{complaint}/identify-driver', [ComplaintsController::class, 'identifyDriver'])->name('identify-driver');
         Route::post('/{complaint}/sanction', [ComplaintsController::class, 'sanction'])->name('sanction');
+        Route::post('/{complaint}/gratify', [ComplaintsController::class, 'gratify'])->name('gratify');
         Route::post('/{complaint}/severity', [ComController::class, 'assignSeverity'])->name('severity');
         Route::post('/{complaint}/forward-rh', [ManagerController::class, 'forwardToRh'])->name('forward-rh');
     });

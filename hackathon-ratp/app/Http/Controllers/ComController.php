@@ -85,6 +85,7 @@ class ComController extends Controller
             && $complaint->severity
             && $complaint->severity->level >= 1
             && $complaint->severity->level <= 2
+            && $complaint->negative !== false
             && $complaint->driver
         ) {
             $activeManager = $complaint->driver->managers->firstWhere('status', UserStatus::Actif);
@@ -126,6 +127,8 @@ class ComController extends Controller
 
         $validated = $request->validated();
 
+        $isNegative = isset($validated['negative']) ? (bool) $validated['negative'] : null;
+
         Severity::updateOrCreate(
             ['complaint_id' => $complaint->id],
             [
@@ -134,6 +137,10 @@ class ComController extends Controller
                 'justification' => $validated['justification'],
             ]
         );
+
+        if ($isNegative !== null) {
+            $complaint->update(['negative' => $isNegative]);
+        }
 
         $level = (int) $validated['level'];
 
@@ -147,53 +154,63 @@ class ComController extends Controller
                 ->with('success', 'Évaluation enregistrée — dossier annulé.');
         }
 
-        if ($level <= 2) {
-            $complaint->load('driver.managers.centreBuses');
-            $activeManager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
-
-            if ($activeManager) {
-                $complaint->update([
-                    'step' => ComplaintStep::ManagerReview,
-                    'manager_user_id' => $activeManager->id,
-                ]);
-
-                return redirect()->route('complaints.show', $complaint)
-                    ->with('success', 'Évaluation enregistrée — dossier transmis au manager.');
-            }
-
-            if ($complaint->driver) {
-                // Manager inactif : valider et utiliser le manager de remplacement fourni
-                $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
-
-                $substituteManager = User::where('id', $request->integer('manager_id'))
-                    ->where('role', UserRole::Manager)
-                    ->where('status', UserStatus::Actif)
-                    ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
-                    ->first();
-
-                if (! $substituteManager) {
-                    return back()->withErrors(['manager_id' => 'Veuillez sélectionner un manager de remplacement valide.'])->withInput();
-                }
-
-                $complaint->update([
-                    'step' => ComplaintStep::ManagerReview,
-                    'manager_user_id' => $substituteManager->id,
-                ]);
-
-                return redirect()->route('complaints.show', $complaint)
-                    ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');
-            }
-
-            // Pas de chauffeur identifié : transmet sans manager assigné
-            $complaint->update(['step' => ComplaintStep::ManagerReview]);
+        // Signalement positif : transmis directement au RH
+        if ($isNegative === false) {
+            $complaint->update(['step' => ComplaintStep::RHReview]);
 
             return redirect()->route('complaints.show', $complaint)
-                ->with('success', 'Évaluation enregistrée — dossier transmis.');
+                ->with('success', 'Signalement positif enregistré — dossier transmis au service RH.');
         }
 
-        $complaint->update(['step' => ComplaintStep::RHReview]);
+        // Signalement négatif, niveau 3-4 : transmis directement au RH
+        if ($level >= 3) {
+            $complaint->update(['step' => ComplaintStep::RHReview]);
+
+            return redirect()->route('complaints.show', $complaint)
+                ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
+        }
+
+        // Signalement négatif, niveau 1-2 : transmis au Manager
+        $complaint->load('driver.managers.centreBuses');
+        $activeManager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
+
+        if ($activeManager) {
+            $complaint->update([
+                'step' => ComplaintStep::ManagerReview,
+                'manager_user_id' => $activeManager->id,
+            ]);
+
+            return redirect()->route('complaints.show', $complaint)
+                ->with('success', 'Évaluation enregistrée — dossier transmis au manager.');
+        }
+
+        if ($complaint->driver) {
+            // Manager inactif : valider et utiliser le manager de remplacement fourni
+            $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
+
+            $substituteManager = User::where('id', $request->integer('manager_id'))
+                ->where('role', UserRole::Manager)
+                ->where('status', UserStatus::Actif)
+                ->whereHas('centreBuses', fn ($q) => $q->whereIn('centre_bus_id', $centreBusIds))
+                ->first();
+
+            if (! $substituteManager) {
+                return back()->withErrors(['manager_id' => 'Veuillez sélectionner un manager de remplacement valide.'])->withInput();
+            }
+
+            $complaint->update([
+                'step' => ComplaintStep::ManagerReview,
+                'manager_user_id' => $substituteManager->id,
+            ]);
+
+            return redirect()->route('complaints.show', $complaint)
+                ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');
+        }
+
+        // Pas de chauffeur identifié : transmet sans manager assigné
+        $complaint->update(['step' => ComplaintStep::ManagerReview]);
 
         return redirect()->route('complaints.show', $complaint)
-            ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
+            ->with('success', 'Évaluation enregistrée — dossier transmis.');
     }
 }

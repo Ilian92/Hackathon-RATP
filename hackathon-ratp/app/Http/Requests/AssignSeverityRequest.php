@@ -20,6 +20,7 @@ class AssignSeverityRequest extends FormRequest
         return [
             'level' => ['required', 'integer', 'min:0', 'max:4'],
             'justification' => ['required', 'string', 'min:10', 'max:2000'],
+            'negative' => ['nullable', 'boolean'],
         ];
     }
 }

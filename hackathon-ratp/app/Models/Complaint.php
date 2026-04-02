@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['description', 'status', 'step', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id', 'com_user_id', 'manager_user_id', 'rh_user_id'])]
+#[Fillable(['description', 'negative', 'status', 'step', 'incident_time', 'bus_id', 'complaint_type_id', 'user_id', 'client_id', 'com_user_id', 'manager_user_id', 'rh_user_id'])]
 class Complaint extends Model
 {
     use HasFactory;
@@ -58,6 +58,12 @@ class Complaint extends Model
     public function sanction(): HasOne
     {
         return $this->hasOne(Sanction::class);
+    }
+
+    /** @return HasOne<Gratification, $this> */
+    public function gratification(): HasOne
+    {
+        return $this->hasOne(Gratification::class);
     }
 
     /** @return BelongsTo<User, $this> */

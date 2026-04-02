@@ -16,6 +16,7 @@ class ComplaintResource extends JsonResource
             'id' => $this->id,
             'complaint_type' => $this->complaintType->name,
             'description' => $this->description,
+            'negative' => $this->negative,
         ];
     }
 }
