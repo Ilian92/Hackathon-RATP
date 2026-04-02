@@ -21,7 +21,15 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('home.store') }}">
+        <form method="POST" action="{{ route('home.store') }}"
+              x-data="{
+                  ligneId: '{{ old('ligne_id') }}',
+                  arretFinId: '{{ old('arret_fin_id') }}',
+                  arretsByLigne: {{ Js::from($arretsByLigne) }},
+                  get arrets() {
+                      return this.ligneId ? (this.arretsByLigne[this.ligneId] ?? []) : [];
+                  }
+              }">
             @csrf
 
             {{-- Email --}}
@@ -38,15 +46,30 @@
             <div class="mb-4">
                 <x-input-label for="ligne_id" value="Ligne de bus" />
                 <select id="ligne_id" name="ligne_id" required
+                        x-model="ligneId"
+                        @change="arretFinId = ''"
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
                     <option value="">-- Sélectionner une ligne --</option>
                     @foreach ($lignes as $ligne)
-                        <option value="{{ $ligne->id }}" @selected(old('ligne_id') == $ligne->id)>
-                            {{ $ligne->nom }}
-                        </option>
+                        <option value="{{ $ligne->id }}">{{ $ligne->nom }}</option>
                     @endforeach
                 </select>
                 <x-input-error :messages="$errors->get('ligne_id')" class="mt-2" />
+            </div>
+
+            {{-- Direction du bus --}}
+            <div class="mb-4" x-show="arrets.length > 0" x-cloak>
+                <x-input-label for="arret_fin_id" value="Direction du bus (terminus)" />
+                <select id="arret_fin_id" name="arret_fin_id"
+                        x-model="arretFinId"
+                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
+                    <option value="">-- Direction inconnue --</option>
+                    <template x-for="arret in arrets" :key="arret.id">
+                        <option :value="arret.id" :selected="arretFinId == arret.id" x-text="arret.nom"></option>
+                    </template>
+                </select>
+                <p class="mt-1.5 text-xs text-gray-400">Indiquez vers quel terminus le bus se dirigeait au moment de l'incident.</p>
+                <x-input-error :messages="$errors->get('arret_fin_id')" class="mt-2" />
             </div>
 
             {{-- Date et heure --}}

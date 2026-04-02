@@ -18,8 +18,13 @@ class PublicComplaintController extends Controller
     {
         $lignes = Ligne::orderBy('nom')->get(['id', 'nom']);
         $complaintTypes = ComplaintType::all();
+        $arretsByLigne = Ligne::with(['arrets' => fn ($q) => $q->select('arrets.id', 'arrets.nom')])
+            ->get()
+            ->mapWithKeys(fn ($l) => [
+                $l->id => $l->arrets->map(fn ($a) => ['id' => $a->id, 'nom' => $a->nom])->values(),
+            ]);
 
-        return view('welcome', compact('lignes', 'complaintTypes'));
+        return view('welcome', compact('lignes', 'complaintTypes', 'arretsByLigne'));
     }
 
     public function store(StorePublicComplaintRequest $request): RedirectResponse
@@ -32,6 +37,7 @@ class PublicComplaintController extends Controller
         $previousDate = Carbon::parse($date)->subDay()->toDateString();
 
         $planning = Planning::where('ligne_id', $validated['ligne_id'])
+            ->when($validated['arret_fin_id'] ?? null, fn ($q, $id) => $q->where('arret_fin_id', $id))
             ->where(function ($q) use ($date, $previousDate, $time) {
                 // Trajet normal : heure_fin > heure_debut, même journée
                 $q->where(function ($q2) use ($date, $time) {

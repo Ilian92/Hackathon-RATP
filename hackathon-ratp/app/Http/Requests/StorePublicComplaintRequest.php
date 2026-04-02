@@ -23,6 +23,7 @@ class StorePublicComplaintRequest extends FormRequest
             'date' => ['required', 'date', 'before_or_equal:today'],
             'heure' => ['required', 'date_format:H:i'],
             'complaint_type_id' => ['required', 'integer', 'exists:complaint_types,id'],
+            'arret_fin_id' => ['nullable', 'integer', 'exists:arrets,id'],
             'description' => ['required', 'string', 'max:2000'],
         ];
     }
