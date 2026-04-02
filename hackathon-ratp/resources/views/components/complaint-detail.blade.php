@@ -106,6 +106,25 @@
     </div>
 </div>
 
+{{-- Gratification --}}
+@if ($complaint->gratification)
+    <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+            </div>
+            <p class="text-xs text-emerald-600 uppercase tracking-wide font-semibold">Gratification accordée</p>
+        </div>
+        <p class="text-sm text-emerald-800 leading-relaxed bg-emerald-100/50 rounded-lg p-4">{{ $complaint->gratification->reason }}</p>
+        @if ($complaint->gratification->amount > 0)
+            <p class="mt-2 text-sm font-semibold text-emerald-700">{{ number_format($complaint->gratification->amount, 0, ',', ' ') }} €</p>
+        @endif
+        <p class="mt-2 text-xs text-emerald-500">Le {{ $complaint->gratification->awarded_at->format('d/m/Y') }}</p>
+    </div>
+@endif
+
 {{-- Évaluation Com --}}
 @if ($complaint->severity)
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

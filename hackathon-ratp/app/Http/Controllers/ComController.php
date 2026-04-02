@@ -75,7 +75,7 @@ class ComController extends Controller
 
     public function show(Complaint $complaint): View
     {
-        $complaint->load(['complaintType', 'bus', 'driver.managers.centreBuses', 'client', 'severity.evaluator', 'comAgent']);
+        $complaint->load(['complaintType', 'bus', 'driver.managers.centreBuses', 'client', 'severity.evaluator', 'comAgent', 'gratification']);
 
         $substituteManagers = collect();
 

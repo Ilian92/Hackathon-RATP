@@ -76,7 +76,7 @@ class ManagerController extends Controller
 
         abort_unless($isAssignedManager || $isResponsibleManager, 403);
 
-        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent', 'sanction']);
+        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent', 'sanction', 'gratification']);
 
         $drivers = $complaint->user_id === null && $isAssignedManager
             ? User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
