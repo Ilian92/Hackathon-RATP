@@ -42,13 +42,16 @@ class QrCodeController extends Controller
     /**
      * Page d'accueil après scan (token résolu).
      */
-    public function landing(string $token): View
+    public function landing(Request $request, string $token): View
     {
         ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
 
         $bus = Bus::where('code', $busCode)->firstOrFail();
 
-        return view('qrcode.show', compact('token', 'bus', 'scannedAt'));
+        $ip = $request->ip();
+        $isThrottled = $this->isScanLimitReached($ip) || $this->hasAlreadySubmittedForToken($ip, $token);
+
+        return view('qrcode.show', compact('token', 'bus', 'scannedAt', 'isThrottled'));
     }
 
     public const SATISFACTION_LIMIT = 3;
