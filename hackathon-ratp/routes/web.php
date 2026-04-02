@@ -5,12 +5,12 @@ use App\Http\Controllers\ComController;
 use App\Http\Controllers\ComplaintsController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\QrCodeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [PublicComplaintController::class, 'index'])->name('home');
+Route::post('/', [PublicComplaintController::class, 'store'])->name('home.store');
 
 Route::get('/qrcode', [QrCodeController::class, 'show'])->name('qrcode.show');
 Route::get('/qrcode-expired', [QrCodeController::class, 'expired'])->name('qrcode.expired');
