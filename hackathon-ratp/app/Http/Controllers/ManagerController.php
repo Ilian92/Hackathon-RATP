@@ -28,6 +28,7 @@ class ManagerController extends Controller
         $typeId = $request->integer('type') ?: null;
         $severityFilter = $request->filled('severity') && in_array($request->integer('severity'), [0, 1, 2, 3, 4]) ? $request->integer('severity') : null;
         $driverFilter = $request->integer('driver_id') ?: null;
+        $nature = in_array($request->string('nature')->toString(), ['positive', 'negative']) ? $request->string('nature')->toString() : null;
 
         // Visible si assignée à ce manager OU si le chauffeur fait partie de son équipe
         $visibilityScope = fn ($q) => $q->where('complaints.manager_user_id', $managerId)
@@ -41,7 +42,9 @@ class ManagerController extends Controller
             ->when($tab === 'closed', fn ($q) => $q->where('complaints.step', ComplaintStep::Closed))
             ->when($typeId, fn ($q) => $q->where('complaints.complaint_type_id', $typeId))
             ->when($driverFilter, fn ($q) => $q->where('complaints.user_id', $driverFilter))
-            ->when($severityFilter !== null, fn ($q) => $q->whereHas('severity', fn ($sq) => $sq->where('level', $severityFilter)));
+            ->when($severityFilter !== null, fn ($q) => $q->whereHas('severity', fn ($sq) => $sq->where('level', $severityFilter)))
+            ->when($nature === 'positive', fn ($q) => $q->where('complaints.negative', false))
+            ->when($nature === 'negative', fn ($q) => $q->where('complaints.negative', true));
 
         match ($sort) {
             'severity' => $query->leftJoin('severities', 'severities.complaint_id', '=', 'complaints.id')
@@ -65,7 +68,7 @@ class ManagerController extends Controller
             'closed' => Complaint::where($visibilityScope)->where('step', ComplaintStep::Closed)->count(),
         ];
 
-        return view('manager.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter'));
+        return view('manager.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter', 'nature'));
     }
 
     public function show(Complaint $complaint, Request $request): View

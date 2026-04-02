@@ -129,36 +129,86 @@
         <div class="flex-1 min-w-0 overflow-hidden flex flex-col gap-4 p-6 bg-slate-100">
 
             @if ($user->role === \App\Enums\UserRole::Chauffeur)
-                {{-- Signalements --}}
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
-                    <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-base font-semibold text-gray-700">Signalements</p>
-                        <div class="flex gap-3 text-xs">
-                            <span class="text-yellow-600 font-medium">{{ $enCoursCount }} en cours</span>
-                            <span class="text-red-600 font-medium">{{ $aboutiesCount }} aboutis</span>
-                            <span class="text-gray-400">{{ $closCount }} clos</span>
+                {{-- Signalements négatifs + positifs côte à côte --}}
+                <div class="flex gap-4 flex-1 min-h-0">
+                    {{-- Signalements négatifs --}}
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
+                        <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+                            <p class="text-base font-semibold text-gray-700">Signalements</p>
+                            <div class="flex gap-3 text-xs">
+                                <span class="text-yellow-600 font-medium">{{ $enCoursCount }} en cours</span>
+                                <span class="text-red-600 font-medium">{{ $aboutiesCount }} aboutis</span>
+                                <span class="text-gray-400">{{ $closCount }} clos</span>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
+                            @forelse ($negativeComplaints->sortByDesc('incident_time') as $complaint)
+                                @php $sc = $complaintStatusColors[$complaint->status->value] ?? 'bg-gray-100 text-gray-500'; @endphp
+                                <div class="px-5 py-3 flex items-center justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">Bus {{ $complaint->bus->code }} · {{ $complaint->incident_time->format('d/m/Y') }}</p>
+                                    </div>
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 {{ $sc }}">
+                                        {{ $complaint->status->label() }}
+                                    </span>
+                                </div>
+                            @empty
+                                <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun signalement</p>
+                            @endforelse
                         </div>
                     </div>
-                    <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
-                        @forelse ($visibleComplaints->sortByDesc('incident_time') as $complaint)
-                            @php $sc = $complaintStatusColors[$complaint->status->value] ?? 'bg-gray-100 text-gray-500'; @endphp
-                            <div class="px-5 py-3 flex items-center justify-between gap-4">
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
-                                    <p class="text-xs text-gray-400 mt-0.5">Bus {{ $complaint->bus->code }} · {{ $complaint->incident_time->format('d/m/Y') }}</p>
+
+                    {{-- Signalements positifs --}}
+                    <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
+                        <div class="px-5 py-3.5 border-b border-emerald-100 flex items-center justify-between shrink-0">
+                            <p class="text-base font-semibold text-emerald-700">Signalements positifs</p>
+                            <span class="text-base font-semibold text-emerald-600">{{ $positiveComplaints->count() }}</span>
+                        </div>
+                        <div class="overflow-y-auto flex-1 divide-y divide-emerald-50">
+                            @forelse ($positiveComplaints->sortByDesc('incident_time') as $complaint)
+                                <div class="px-5 py-3 flex items-center justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">Bus {{ $complaint->bus->code }} · {{ $complaint->incident_time->format('d/m/Y') }}</p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 bg-emerald-100 text-emerald-700">
+                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                        </svg>
+                                        Positif
+                                    </span>
                                 </div>
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 {{ $sc }}">
-                                    {{ $complaint->status->label() }}
-                                </span>
-                            </div>
-                        @empty
-                            <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun signalement</p>
-                        @endforelse
+                            @empty
+                                <p class="px-5 py-6 text-sm text-emerald-400 text-center">Aucun signalement positif</p>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
 
-                {{-- Gratifications + Sanctions --}}
+                {{-- Sanctions + Gratifications --}}
                 <div class="flex gap-4 flex-1 min-h-0">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
+                        <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
+                            <p class="text-base font-semibold text-gray-700">Sanctions</p>
+                        </div>
+                        <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
+                            @forelse ($user->sanctions->sortByDesc('sanctioned_at') as $s)
+                                <div class="px-5 py-3 flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $s->description }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $s->sanctioned_at->format('d/m/Y') }}</p>
+                                    </div>
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 bg-red-50 text-red-600">
+                                        {{ $s->type }}
+                                    </span>
+                                </div>
+                            @empty
+                                <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune sanction</p>
+                            @endforelse
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
                         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                             <p class="text-base font-semibold text-gray-700">Gratifications</p>
@@ -177,27 +227,6 @@
                                 </div>
                             @empty
                                 <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune gratification</p>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
-                        <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
-                            <p class="text-base font-semibold text-gray-700">Sanctions</p>
-                        </div>
-                        <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
-                            @forelse ($user->sanctions->sortByDesc('sanctioned_at') as $s)
-                                <div class="px-5 py-3 flex items-start justify-between gap-4">
-                                    <div class="min-w-0">
-                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $s->description }}</p>
-                                        <p class="text-xs text-gray-400 mt-0.5">{{ $s->sanctioned_at->format('d/m/Y') }}</p>
-                                    </div>
-                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 bg-red-50 text-red-600">
-                                        {{ $s->type }}
-                                    </span>
-                                </div>
-                            @empty
-                                <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune sanction</p>
                             @endforelse
                         </div>
                     </div>

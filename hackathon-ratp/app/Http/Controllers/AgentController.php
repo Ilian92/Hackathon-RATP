@@ -47,11 +47,14 @@ class AgentController extends Controller
             fn ($c) => in_array($c->step, [ComplaintStep::RHReview, ComplaintStep::Closed])
         );
 
-        $aboutiesCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
-        $enCoursCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
-        $closCount = $visibleComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+        $negativeComplaints = $visibleComplaints->filter(fn ($c) => $c->negative !== false);
+        $positiveComplaints = $visibleComplaints->filter(fn ($c) => $c->negative === false);
 
-        return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne', 'visibleComplaints');
+        $aboutiesCount = $negativeComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Abouti)->count();
+        $enCoursCount = $negativeComplaints->filter(fn ($c) => $c->status === ComplaintStatus::EnCours)->count();
+        $closCount = $negativeComplaints->filter(fn ($c) => $c->status === ComplaintStatus::Clos)->count();
+
+        return compact('avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne', 'negativeComplaints', 'positiveComplaints');
     }
 
     /** @return array<string, mixed> */
