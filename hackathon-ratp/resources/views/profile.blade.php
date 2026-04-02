@@ -132,7 +132,7 @@
                 {{-- Signalements --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Signalements</p>
+                        <p class="text-base font-semibold text-gray-700">Signalements</p>
                         <div class="flex gap-3 text-xs">
                             <span class="text-yellow-600 font-medium">{{ $enCoursCount }} en cours</span>
                             <span class="text-red-600 font-medium">{{ $aboutiesCount }} aboutis</span>
@@ -161,7 +161,7 @@
                 <div class="flex gap-4 flex-1 min-h-0">
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                            <p class="text-sm font-semibold text-gray-700">Gratifications</p>
+                            <p class="text-base font-semibold text-gray-700">Gratifications</p>
                             @if ($user->gratifications->isNotEmpty())
                                 <span class="text-sm font-bold text-[#4bc0ad]">{{ number_format($user->gratifications->sum('amount')) }} €</span>
                             @endif
@@ -183,7 +183,7 @@
 
                     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                         <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
-                            <p class="text-sm font-semibold text-gray-700">Sanctions</p>
+                            <p class="text-base font-semibold text-gray-700">Sanctions</p>
                         </div>
                         <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                             @forelse ($user->sanctions->sortByDesc('sanctioned_at') as $s)
@@ -207,7 +207,7 @@
                 {{-- Plaintes en attente de décision --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Dossiers en attente de décision</p>
+                        <p class="text-base font-semibold text-gray-700">Dossiers en attente de décision</p>
                         <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
@@ -239,7 +239,7 @@
                 {{-- Équipe de chauffeurs --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Mon équipe — {{ $user->chauffeurs->count() }} chauffeurs</p>
+                        <p class="text-base font-semibold text-gray-700">Mon équipe — {{ $user->chauffeurs->count() }} chauffeurs</p>
                     </div>
                     <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
                         @forelse ($user->chauffeurs as $chauffeur)
@@ -271,7 +271,10 @@
                 {{-- Plaintes disponibles + mes dossiers --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Plaintes disponibles</p>
+                        <p class="text-base font-semibold text-gray-700">
+                            Plaintes disponibles
+                            <span class="text-[#004fa3]">{{ $availableComplaints->count() }}</span>
+                        </p>
                         <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir toutes →
                         </a>
@@ -297,7 +300,7 @@
 
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Mes dossiers en cours</p>
+                        <p class="text-base font-semibold text-gray-700">Mes dossiers en cours</p>
                         <a href="{{ route('complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
@@ -327,7 +330,7 @@
             @elseif ($user->role === \App\Enums\UserRole::RH)
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Dossiers RH disponibles</p>
+                        <p class="text-base font-semibold text-gray-700">Dossiers RH disponibles</p>
                         <a href="{{ route('complaints.index') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
@@ -358,7 +361,7 @@
 
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
-                        <p class="text-sm font-semibold text-gray-700">Mes dossiers en cours</p>
+                        <p class="text-base font-semibold text-gray-700">Mes dossiers en cours</p>
                         <a href="{{ route('complaints.index', ['tab' => 'mine']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
                             Voir tous →
                         </a>
