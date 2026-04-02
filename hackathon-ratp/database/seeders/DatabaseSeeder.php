@@ -122,7 +122,11 @@ class DatabaseSeeder extends Seeder
         $complaintTypes = ComplaintType::factory(8)->create();
 
         // Bus
-        $buses = Bus::factory(10)->create();
+        $buses = collect([
+            'AB-001-CD', 'EF-002-GH', 'IJ-003-KL', 'MN-004-OP',
+            'QR-005-ST', 'UV-006-WX', 'YZ-007-AB', 'CD-008-EF',
+            'GH-009-IJ', 'KL-010-MN',
+        ])->map(fn (string $code) => Bus::firstOrCreate(['code' => $code]));
 
         // Lignes de bus rattachées aux centres
         $arrets = Arret::factory(40)->create();
