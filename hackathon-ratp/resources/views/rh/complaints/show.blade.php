@@ -25,6 +25,31 @@
 
         <x-complaint-detail :complaint="$complaint" />
 
+        @if ($drivers->isNotEmpty())
+            <div class="bg-white rounded-2xl shadow-sm border border-amber-200 p-6">
+                <h2 class="text-sm font-semibold text-amber-600 uppercase tracking-wide mb-1">Chauffeur non identifié</h2>
+                <p class="text-sm text-gray-500 mb-4">Le chauffeur concerné par cet incident n'a pas pu être déterminé automatiquement. Identifiez-le manuellement.</p>
+                <form method="POST" action="{{ route('complaints.identify-driver', $complaint) }}" class="flex items-end gap-3">
+                    @csrf
+                    <div class="flex-1">
+                        <label for="driver_id" class="block text-xs font-medium text-gray-600 mb-1">Chauffeur concerné</label>
+                        <select id="driver_id" name="driver_id" required
+                                class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3] text-sm">
+                            <option value="">-- Sélectionner un chauffeur --</option>
+                            @foreach ($drivers as $driver)
+                                <option value="{{ $driver->id }}">{{ $driver->last_name }} {{ $driver->first_name }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('driver_id')" class="mt-2" />
+                    </div>
+                    <button type="submit"
+                            class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition shadow-sm whitespace-nowrap">
+                        Identifier
+                    </button>
+                </form>
+            </div>
+        @endif
+
         @if ($complaint->step->value === 'RHReview')
             @if ($complaint->rh_user_id === null)
                 <div class="bg-white rounded-2xl shadow-sm border border-[#004fa3]/20 p-6 flex items-center justify-between gap-4">

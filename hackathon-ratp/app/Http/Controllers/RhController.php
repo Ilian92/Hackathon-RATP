@@ -64,7 +64,30 @@ class RhController extends Controller
     {
         $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent']);
 
-        return view('rh.complaints.show', compact('complaint'));
+        $drivers = $complaint->user_id === null
+            ? User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
+            : collect();
+
+        return view('rh.complaints.show', compact('complaint', 'drivers'));
+    }
+
+    public function identifyDriver(Complaint $complaint, Request $request): RedirectResponse
+    {
+        abort_unless($complaint->rh_user_id === $request->user()->id, 403);
+        abort_if($complaint->user_id !== null, 422);
+
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $driver = User::where('id', $validated['driver_id'])
+            ->where('role', UserRole::Chauffeur)
+            ->firstOrFail();
+
+        $complaint->update(['user_id' => $driver->id]);
+
+        return redirect()->route('complaints.show', $complaint)
+            ->with('success', 'Chauffeur identifié et associé au dossier.');
     }
 
     public function claim(Complaint $complaint, Request $request): RedirectResponse

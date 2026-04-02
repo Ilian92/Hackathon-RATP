@@ -54,7 +54,7 @@ class ComController extends Controller
 
         $complaints = $query->paginate(20)->withQueryString();
         $complaintTypes = ComplaintType::orderBy('name')->get();
-        $drivers = User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
+        $drivers = collect();
 
         $importantCount = Complaint::whereHas('severity', fn ($q) => $q->whereIn('level', [3, 4]))
             ->where(function ($q) use ($userId) {

@@ -84,8 +84,8 @@
                         @endphp
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-5 py-4 font-medium text-gray-800">{{ $complaint->complaintType->name }}</td>
-                            <td class="px-5 py-4 text-gray-600">
-                                {{ $complaint->driver ? $complaint->driver->first_name.' '.$complaint->driver->last_name : '—' }}
+                            <td class="px-5 py-4 text-gray-400 italic text-xs">
+                                {{ $complaint->driver ? 'Identifié' : 'Non identifié' }}
                             </td>
                             <td class="px-5 py-4 text-gray-500 font-mono text-xs">{{ $complaint->bus->code }}</td>
                             <td class="px-5 py-4 text-gray-500">{{ $complaint->incident_time->format('d/m/Y') }}</td>

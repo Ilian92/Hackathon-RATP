@@ -85,8 +85,12 @@
         <div>
             <p class="text-xs text-gray-400 uppercase tracking-wide">Chauffeur concerné</p>
             @if ($complaint->driver)
-                <p class="mt-1 font-medium text-gray-800">{{ $complaint->driver->first_name }} {{ $complaint->driver->last_name }}</p>
-                <p class="text-xs text-gray-400 font-mono">{{ $complaint->driver->matricule }}</p>
+                @if (in_array(auth()->user()->role, [\App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
+                    <p class="mt-1 font-medium text-gray-800">{{ $complaint->driver->first_name }} {{ $complaint->driver->last_name }}</p>
+                    <p class="text-xs text-gray-400 font-mono">{{ $complaint->driver->matricule }}</p>
+                @else
+                    <p class="mt-1 text-sm text-gray-400 italic">Identifié — confidentiel</p>
+                @endif
             @else
                 <p class="mt-1 text-gray-400">Non identifié</p>
             @endif

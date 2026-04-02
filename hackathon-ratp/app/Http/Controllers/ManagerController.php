@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
+use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\User;
@@ -76,7 +77,31 @@ class ManagerController extends Controller
 
         $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent']);
 
-        return view('manager.complaints.show', compact('complaint', 'isAssignedManager'));
+        $drivers = $complaint->user_id === null && $isAssignedManager
+            ? User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
+            : collect();
+
+        return view('manager.complaints.show', compact('complaint', 'isAssignedManager', 'drivers'));
+    }
+
+    public function identifyDriver(Complaint $complaint, Request $request): RedirectResponse
+    {
+        $manager = $request->user();
+        abort_unless($complaint->manager_user_id === $manager->id, 403);
+        abort_if($complaint->user_id !== null, 422);
+
+        $validated = $request->validate([
+            'driver_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $driver = User::where('id', $validated['driver_id'])
+            ->where('role', UserRole::Chauffeur)
+            ->firstOrFail();
+
+        $complaint->update(['user_id' => $driver->id]);
+
+        return redirect()->route('complaints.show', $complaint)
+            ->with('success', 'Chauffeur identifié et associé au dossier.');
     }
 
     public function forwardToRh(Complaint $complaint, Request $request): RedirectResponse

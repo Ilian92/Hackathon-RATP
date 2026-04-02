@@ -47,4 +47,13 @@ class ComplaintsController extends Controller
             default => abort(403),
         };
     }
+
+    public function identifyDriver(Request $request, Complaint $complaint): RedirectResponse
+    {
+        return match ($request->user()->role) {
+            UserRole::Manager => app(ManagerController::class)->identifyDriver($complaint, $request),
+            UserRole::RH => app(RhController::class)->identifyDriver($complaint, $request),
+            default => abort(403),
+        };
+    }
 }

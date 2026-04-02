@@ -30,16 +30,18 @@
         @endforeach
     </select>
 
-    <select name="driver_id" onchange="this.form.submit()"
-            class="text-sm rounded-lg border-gray-200 py-1.5 pl-3 pr-8 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3]
-                   {{ $driverFilter ? 'border-[#004fa3] text-[#004fa3] font-medium' : 'text-gray-600' }}">
-        <option value="">Tous les chauffeurs</option>
-        @foreach ($drivers as $driver)
-            <option value="{{ $driver->id }}" @selected($driverFilter === $driver->id)>
-                {{ $driver->last_name }} {{ $driver->first_name }}
-            </option>
-        @endforeach
-    </select>
+    @if ($drivers->isNotEmpty())
+        <select name="driver_id" onchange="this.form.submit()"
+                class="text-sm rounded-lg border-gray-200 py-1.5 pl-3 pr-8 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3]
+                       {{ $driverFilter ? 'border-[#004fa3] text-[#004fa3] font-medium' : 'text-gray-600' }}">
+            <option value="">Tous les chauffeurs</option>
+            @foreach ($drivers as $driver)
+                <option value="{{ $driver->id }}" @selected($driverFilter === $driver->id)>
+                    {{ $driver->last_name }} {{ $driver->first_name }}
+                </option>
+            @endforeach
+        </select>
+    @endif
 
     <select name="severity" onchange="this.form.submit()"
             class="text-sm rounded-lg border-gray-200 py-1.5 pl-3 pr-8 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3]

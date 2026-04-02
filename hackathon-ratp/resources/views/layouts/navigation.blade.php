@@ -2,9 +2,9 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-8 w-auto text-white" />
+                <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
+                    <a href="/">
+                        <img src="{{ asset('images/Image1 (1).png') }}" alt="RATP Réseaux de Surface" class="h-16 w-auto" />
                     </a>
                 </div>
                 <div class="hidden sm:-my-px sm:ms-10 sm:flex">
