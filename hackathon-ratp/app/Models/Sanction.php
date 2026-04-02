@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'complaint_id', 'type', 'description', 'sanctioned_at'])]
+#[Fillable(['user_id', 'complaint_id', 'mission_mouche_id', 'type', 'description', 'sanctioned_at'])]
 class Sanction extends Model
 {
     /** @use HasFactory<SanctionFactory> */

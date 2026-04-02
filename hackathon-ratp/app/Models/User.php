@@ -84,4 +84,29 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'manager_chauffeur', 'chauffeur_id', 'manager_id');
     }
+
+    /** @return HasMany<MissionMouche, $this> */
+    public function missionsAsChauffeur(): HasMany
+    {
+        return $this->hasMany(MissionMouche::class, 'driver_user_id');
+    }
+
+    /** @return HasMany<MissionMouche, $this> */
+    public function missionsAsManager(): HasMany
+    {
+        return $this->hasMany(MissionMouche::class, 'manager_user_id');
+    }
+
+    /** @return BelongsToMany<MissionMouche, $this> */
+    public function missionsAsMouche(): BelongsToMany
+    {
+        return $this->belongsToMany(MissionMouche::class, 'mission_mouche_user')
+            ->withPivot('submitted_at');
+    }
+
+    /** @return HasMany<RapportMouche, $this> */
+    public function rapportsMouche(): HasMany
+    {
+        return $this->hasMany(RapportMouche::class, 'mouche_user_id');
+    }
 }

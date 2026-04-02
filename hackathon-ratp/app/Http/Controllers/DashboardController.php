@@ -4,18 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
+use App\Enums\MissionMoucheStatus;
 use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\Gratification;
+use App\Models\MissionMouche;
 use App\Models\Sanction;
 use App\Models\Satisfaction;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
 
@@ -23,6 +26,7 @@ class DashboardController extends Controller
             UserRole::Manager => $this->managerDashboard($user),
             UserRole::Com => $this->comDashboard($user),
             UserRole::RH => $this->rhDashboard($user),
+            UserRole::Mouche => redirect()->route('mouche.dashboard'),
             default => view('dashboard'),
         };
     }
@@ -119,10 +123,15 @@ class DashboardController extends Controller
             ];
         })->values();
 
+        $pendingMissionDecisionCount = MissionMouche::where('manager_user_id', $user->id)
+            ->where('status', MissionMoucheStatus::Completee)
+            ->count();
+
         return view('manager.dashboard', compact(
             'pendingCount', 'rhCount', 'closedThisMonth', 'teamCount',
             'stepBreakdown', 'natureBreakdown', 'severityDistribution', 'teamStats',
-            'avgDaysToClose', 'teamSatisfaction', 'agingPending', 'monthlyVolume'
+            'avgDaysToClose', 'teamSatisfaction', 'agingPending', 'monthlyVolume',
+            'pendingMissionDecisionCount'
         ));
     }
 

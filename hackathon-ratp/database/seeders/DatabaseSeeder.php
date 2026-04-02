@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
+use App\Enums\MissionMoucheDecision;
+use App\Enums\MissionMoucheStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Arret;
@@ -14,7 +16,9 @@ use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Gratification;
 use App\Models\Ligne;
+use App\Models\MissionMouche;
 use App\Models\Planning;
+use App\Models\RapportMouche;
 use App\Models\Sanction;
 use App\Models\Satisfaction;
 use App\Models\Severity;
@@ -1009,5 +1013,219 @@ class DatabaseSeeder extends Seeder
         foreach ($allTeamDrivers as $driver) {
             Satisfaction::factory(fake()->numberBetween(8, 20))->create(['user_id' => $driver->id]);
         }
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // DONNÉES MOUCHE
+        // ═══════════════════════════════════════════════════════════════════════════
+
+        // ─── Agents mouche ────────────────────────────────────────────────────────
+        $testMouche = User::factory()->role(UserRole::Mouche)->create([
+            'first_name' => 'Isabelle',
+            'last_name' => 'Dumont',
+            'email' => 'mouche.test@ratp.fr',
+            'matricule' => 'RATP-MCH001',
+        ]);
+        $mouche2 = User::factory()->role(UserRole::Mouche)->create([
+            'first_name' => 'Marc',
+            'last_name' => 'Petit',
+            'email' => 'mouche2.test@ratp.fr',
+            'matricule' => 'RATP-MCH002',
+        ]);
+        $mouche3 = User::factory()->role(UserRole::Mouche)->create([
+            'first_name' => 'Nathalie',
+            'last_name' => 'Renaud',
+            'email' => 'mouche3.test@ratp.fr',
+            'matricule' => 'RATP-MCH003',
+        ]);
+        $centreLagny->users()->attach([$testMouche->id, $mouche2->id, $mouche3->id]);
+
+        $ligne1 = $toutesLesLignes->first();
+
+        // ─── Mission 1 : En cours, 1 rapport sur 3 soumis ─────────────────────────
+        // testMouche et mouche3 n'ont pas encore soumis → testMouche peut remplir son rapport
+        $mission1 = MissionMouche::create([
+            'driver_user_id' => $testDriver->id,
+            'manager_user_id' => $testManager->id,
+            'status' => MissionMoucheStatus::EnCours,
+            'created_at' => now()->subDays(4),
+            'updated_at' => now()->subDays(4),
+        ]);
+        $mission1->mouches()->attach([
+            $testMouche->id => ['submitted_at' => null],
+            $mouche2->id => ['submitted_at' => now()->subDays(2)],
+            $mouche3->id => ['submitted_at' => null],
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission1->id,
+            'mouche_user_id' => $mouche2->id,
+            'ligne_id' => $ligne1->id,
+            'date_observation' => now()->subDays(3)->toDateString(),
+            'ponctualite' => 3,
+            'conduite' => 2,
+            'politesse' => 2,
+            'tenue' => 4,
+            'securite' => 3,
+            'gestion_conflit' => null,
+            'observation' => "Le chauffeur était distrait à plusieurs reprises. J'ai observé deux freinages brusques non justifiés. Tenue correcte mais attitude peu accueillante envers les passagers.",
+        ]);
+
+        // ─── Mission 2 : Complétée, en attente de décision manager ────────────────
+        // Tous les rapports sont reçus → Sophie doit décider
+        $mission2 = MissionMouche::create([
+            'driver_user_id' => $teamDrivers[0]->id,
+            'manager_user_id' => $testManager->id,
+            'status' => MissionMoucheStatus::Completee,
+            'created_at' => now()->subDays(10),
+            'updated_at' => now()->subDays(1),
+        ]);
+        $mission2->mouches()->attach([
+            $testMouche->id => ['submitted_at' => now()->subDays(2)],
+            $mouche2->id => ['submitted_at' => now()->subDays(3)],
+            $mouche3->id => ['submitted_at' => now()->subDays(1)],
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission2->id,
+            'mouche_user_id' => $testMouche->id,
+            'ligne_id' => $ligne1->id,
+            'date_observation' => now()->subDays(3)->toDateString(),
+            'ponctualite' => 1,
+            'conduite' => 2,
+            'politesse' => 1,
+            'tenue' => 3,
+            'securite' => 2,
+            'gestion_conflit' => 1,
+            'observation' => 'Comportement très problématique. Le chauffeur a refusé de laisser monter un passager en fauteuil roulant, invoquant un prétendu manque de place alors que le bus était presque vide. Ton agressif et irrespectueux.',
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission2->id,
+            'mouche_user_id' => $mouche2->id,
+            'ligne_id' => $ligne1->id,
+            'date_observation' => now()->subDays(4)->toDateString(),
+            'ponctualite' => 2,
+            'conduite' => 2,
+            'politesse' => 1,
+            'tenue' => 3,
+            'securite' => 2,
+            'gestion_conflit' => null,
+            'observation' => "Conduite brusque, plusieurs passagers debout ont dû s'agripper. Le chauffeur n'a fait aucune annonce aux arrêts. Attitude froide et peu coopérative.",
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission2->id,
+            'mouche_user_id' => $mouche3->id,
+            'ligne_id' => null,
+            'date_observation' => now()->subDays(2)->toDateString(),
+            'ponctualite' => 2,
+            'conduite' => 3,
+            'politesse' => 2,
+            'tenue' => 2,
+            'securite' => 3,
+            'gestion_conflit' => 2,
+            'observation' => "J'ai observé une altercation avec un passager lors du contrôle d'un titre de transport. Le chauffeur a haussé la voix de façon disproportionnée. Tenue négligée.",
+        ]);
+
+        // ─── Mission 3 : Décidée — classé sans suite ──────────────────────────────
+        $mission3 = MissionMouche::create([
+            'driver_user_id' => $teamDrivers[1]->id,
+            'manager_user_id' => $testManager->id,
+            'status' => MissionMoucheStatus::Decidee,
+            'decision' => MissionMoucheDecision::Cloture,
+            'manager_notes' => 'Les trois rapports convergent vers un comportement globalement correct. Les observations relevées sont ponctuelles et ne justifient pas de mesure disciplinaire. Dossier classé sans suite.',
+            'decided_at' => now()->subDays(5),
+            'created_at' => now()->subDays(20),
+            'updated_at' => now()->subDays(5),
+        ]);
+        $mission3->mouches()->attach([
+            $testMouche->id => ['submitted_at' => now()->subDays(8)],
+            $mouche2->id => ['submitted_at' => now()->subDays(9)],
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission3->id,
+            'mouche_user_id' => $testMouche->id,
+            'ligne_id' => $toutesLesLignes->skip(1)->first()?->id,
+            'date_observation' => now()->subDays(9)->toDateString(),
+            'ponctualite' => 4,
+            'conduite' => 4,
+            'politesse' => 3,
+            'tenue' => 5,
+            'securite' => 4,
+            'gestion_conflit' => null,
+            'observation' => "Rien de particulier à signaler. Le chauffeur a conduit de façon professionnelle et respectueuse. Légère impatience lors d'une validation de titre de transport, mais sans incident.",
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission3->id,
+            'mouche_user_id' => $mouche2->id,
+            'ligne_id' => $toutesLesLignes->skip(1)->first()?->id,
+            'date_observation' => now()->subDays(10)->toDateString(),
+            'ponctualite' => 5,
+            'conduite' => 4,
+            'politesse' => 4,
+            'tenue' => 5,
+            'securite' => 5,
+            'gestion_conflit' => null,
+            'observation' => 'Bon professionnalisme général. Le chauffeur a aidé une personne âgée à trouver sa place. Aucun manquement observé lors de mon trajet.',
+        ]);
+
+        // ─── Mission 4 : Décidée — sanction appliquée ─────────────────────────────
+        $mission4 = MissionMouche::create([
+            'driver_user_id' => $teamDrivers[2]->id,
+            'manager_user_id' => $testManager->id,
+            'status' => MissionMoucheStatus::Decidee,
+            'decision' => MissionMoucheDecision::Sanctionne,
+            'manager_notes' => 'Les rapports des trois mouches concordent sur un comportement irrespectueux et une conduite dangereuse. Au regard des antécédents et de la gravité des faits, un blâme formel a été prononcé.',
+            'decided_at' => now()->subDays(15),
+            'created_at' => now()->subDays(35),
+            'updated_at' => now()->subDays(15),
+        ]);
+        $mission4->mouches()->attach([
+            $testMouche->id => ['submitted_at' => now()->subDays(18)],
+            $mouche2->id => ['submitted_at' => now()->subDays(19)],
+            $mouche3->id => ['submitted_at' => now()->subDays(17)],
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission4->id,
+            'mouche_user_id' => $testMouche->id,
+            'ligne_id' => $toutesLesLignes->skip(2)->first()?->id,
+            'date_observation' => now()->subDays(19)->toDateString(),
+            'ponctualite' => 2,
+            'conduite' => 1,
+            'politesse' => 2,
+            'tenue' => 3,
+            'securite' => 1,
+            'gestion_conflit' => 1,
+            'observation' => "Conduite très dangereuse, vitesse excessive en zone résidentielle. Le chauffeur a grillé un feu orange appuyé et n'a pas cédé la priorité à un piéton sur un passage clouté. J'ai personnellement assisté à une altercation avec un passager qui a failli dégénérer.",
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission4->id,
+            'mouche_user_id' => $mouche2->id,
+            'ligne_id' => $toutesLesLignes->skip(2)->first()?->id,
+            'date_observation' => now()->subDays(20)->toDateString(),
+            'ponctualite' => 2,
+            'conduite' => 1,
+            'politesse' => 1,
+            'tenue' => 2,
+            'securite' => 2,
+            'gestion_conflit' => null,
+            'observation' => "Chauffeur visiblement de mauvaise humeur. A refusé de répondre à une question d'une passagère. Freinage brusque à deux reprises. Tenue et comportement en dessous des standards attendus.",
+        ]);
+        RapportMouche::create([
+            'mission_mouche_id' => $mission4->id,
+            'mouche_user_id' => $mouche3->id,
+            'ligne_id' => null,
+            'date_observation' => now()->subDays(18)->toDateString(),
+            'ponctualite' => 3,
+            'conduite' => 2,
+            'politesse' => 2,
+            'tenue' => 2,
+            'securite' => 2,
+            'gestion_conflit' => 2,
+            'observation' => "Comportement globalement insuffisant. Le chauffeur a ignoré plusieurs sonnettes d'arrêt avant de finalement s'arrêter. Un passager a protesté et s'en est suivi un échange tendu.",
+        ]);
+        Sanction::create([
+            'user_id' => $teamDrivers[2]->id,
+            'mission_mouche_id' => $mission4->id,
+            'type' => 'Blâme',
+            'description' => 'Blâme formel suite au rapport de mission mouche. Conduite dangereuse et comportement irrespectueux répétés confirmés par trois agents indépendants.',
+            'sanctioned_at' => now()->subDays(15)->toDateString(),
+        ]);
     }
 }

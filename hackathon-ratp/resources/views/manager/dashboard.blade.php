@@ -42,6 +42,22 @@
             </div>
         </div>
 
+        @if ($pendingMissionDecisionCount > 0)
+            <a href="{{ route('missions.index') }}"
+               class="flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 hover:bg-amber-100 transition">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🕵️</span>
+                    <div>
+                        <p class="text-sm font-semibold text-amber-800">
+                            {{ $pendingMissionDecisionCount }} mission{{ $pendingMissionDecisionCount > 1 ? 's mouche nécessitent' : ' mouche nécessite' }} une décision
+                        </p>
+                        <p class="text-xs text-amber-600">Tous les rapports sont reçus — cliquez pour décider</p>
+                    </div>
+                </div>
+                <span class="text-amber-600 text-sm font-semibold shrink-0">Voir →</span>
+            </a>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             {{-- Répartition par étape --}}

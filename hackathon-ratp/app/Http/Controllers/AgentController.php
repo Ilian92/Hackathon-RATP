@@ -22,7 +22,7 @@ class AgentController extends Controller
             UserRole::Manager => $this->managerData($user),
             UserRole::Com => $this->comData($user),
             UserRole::RH => $this->rhData($user),
-            UserRole::Avocat => [],
+            UserRole::Avocat, UserRole::Mouche => [],
         };
 
         return view('profile', array_merge(['user' => $user], $data));

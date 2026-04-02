@@ -5,9 +5,12 @@ use App\Http\Controllers\ComController;
 use App\Http\Controllers\ComplaintsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\MissionMoucheController;
+use App\Http\Controllers\MoucheDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\RapportMoucheController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicComplaintController::class, 'index'])->name('home');
@@ -39,6 +42,18 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/drivers/{user}', [ManagerController::class, 'showDriver'])->name('drivers.show');
+
+    // Missions mouche (manager)
+    Route::get('/missions', [MissionMoucheController::class, 'index'])->name('missions.index');
+    Route::get('/missions/create', [MissionMoucheController::class, 'create'])->name('missions.create');
+    Route::post('/missions', [MissionMoucheController::class, 'store'])->name('missions.store');
+    Route::get('/missions/{mission}', [MissionMoucheController::class, 'show'])->name('missions.show');
+    Route::patch('/missions/{mission}/decide', [MissionMoucheController::class, 'decide'])->name('missions.decide');
+
+    // Mouche dashboard & rapports
+    Route::get('/mouche/dashboard', [MoucheDashboardController::class, 'index'])->name('mouche.dashboard');
+    Route::get('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'create'])->name('rapport.create');
+    Route::post('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'store'])->name('rapport.store');
 
     Route::get('/manage-profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/manage-profile', [ProfileController::class, 'update'])->name('profile.update');

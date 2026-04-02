@@ -16,6 +16,11 @@
                             Gestion des plaintes
                         </x-nav-link>
                     @endif
+                    @if (Auth::user()->role === \App\Enums\UserRole::Manager)
+                        <x-nav-link :href="route('missions.index')" :active="request()->routeIs('missions.*')">
+                            Missions mouche
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -68,6 +73,11 @@
             @if (in_array(Auth::user()->role, [\App\Enums\UserRole::Com, \App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
                 <x-responsive-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
                     Gestion des plaintes
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->role === \App\Enums\UserRole::Manager)
+                <x-responsive-nav-link :href="route('missions.index')" :active="request()->routeIs('missions.*')">
+                    Missions mouche
                 </x-responsive-nav-link>
             @endif
         </div>
