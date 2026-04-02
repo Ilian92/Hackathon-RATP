@@ -66,14 +66,18 @@
                             @csrf
                             <button type="submit"
                                     class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
-                                Clôturer le dossier
+                                Clôturer sans suite
                             </button>
                         </form>
                     </div>
                     <p class="mt-3 text-xs text-gray-400">
-                        Clôturer = aucune suite. Transmettre au RH = ouverture d'une procédure disciplinaire.
+                        Clôturer sans suite = aucune action. Transmettre au RH = ouverture d'une procédure disciplinaire.
                     </p>
                 </div>
+
+                @if ($complaint->sanction === null)
+                    <x-sanction-form :complaint="$complaint" />
+                @endif
             @else
                 <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6">
                     <p class="text-sm text-gray-500">

@@ -7,6 +7,7 @@ use App\Enums\ComplaintStep;
 use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\ComplaintType;
+use App\Models\Sanction;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -75,7 +76,7 @@ class ManagerController extends Controller
 
         abort_unless($isAssignedManager || $isResponsibleManager, 403);
 
-        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent']);
+        $complaint->load(['complaintType', 'bus', 'driver', 'client', 'severity.evaluator', 'comAgent', 'rhAgent', 'managerAgent', 'sanction']);
 
         $drivers = $complaint->user_id === null && $isAssignedManager
             ? User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name'])
@@ -135,6 +136,36 @@ class ManagerController extends Controller
         return view('manager.drivers.show', compact(
             'user', 'avgSur5', 'totalAvis', 'aboutiesCount', 'enCoursCount', 'closCount', 'scoreInterne'
         ));
+    }
+
+    public function sanction(Complaint $complaint, Request $request): RedirectResponse
+    {
+        abort_unless($complaint->manager_user_id === $request->user()->id, 403);
+
+        if ($complaint->step !== ComplaintStep::ManagerReview || $complaint->sanction !== null) {
+            return back()->with('error', 'Action non disponible pour ce dossier.');
+        }
+
+        $validated = $request->validate([
+            'type' => ['required', 'string', 'max:100'],
+            'description' => ['required', 'string', 'max:2000'],
+        ]);
+
+        Sanction::create([
+            'user_id' => $complaint->user_id,
+            'complaint_id' => $complaint->id,
+            'type' => $validated['type'],
+            'description' => $validated['description'],
+            'sanctioned_at' => now()->toDateString(),
+        ]);
+
+        $complaint->update([
+            'step' => ComplaintStep::Closed,
+            'status' => ComplaintStatus::Abouti,
+        ]);
+
+        return redirect()->route('complaints.show', $complaint)
+            ->with('success', 'Sanction enregistrée — dossier clôturé.');
     }
 
     public function close(Complaint $complaint, Request $request): RedirectResponse

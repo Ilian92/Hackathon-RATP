@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{complaint}/claim', [ComplaintsController::class, 'claim'])->name('claim');
         Route::post('/{complaint}/close', [ComplaintsController::class, 'close'])->name('close');
         Route::post('/{complaint}/identify-driver', [ComplaintsController::class, 'identifyDriver'])->name('identify-driver');
+        Route::post('/{complaint}/sanction', [ComplaintsController::class, 'sanction'])->name('sanction');
         Route::post('/{complaint}/severity', [ComController::class, 'assignSeverity'])->name('severity');
         Route::post('/{complaint}/forward-rh', [ManagerController::class, 'forwardToRh'])->name('forward-rh');
     });

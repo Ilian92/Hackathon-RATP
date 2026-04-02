@@ -68,14 +68,18 @@
                     <form method="POST" action="{{ route('complaints.close', $complaint) }}">
                         @csrf
                         <p class="text-sm text-gray-600 mb-4">
-                            Clôturer ce dossier marquera la plainte comme <strong>aboutie</strong> et mettra fin à la procédure.
+                            Clôturer sans sanction marquera la plainte comme <strong>aboutie</strong> et mettra fin à la procédure sans action disciplinaire.
                         </p>
                         <button type="submit"
-                                class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
-                            Clôturer — Plainte aboutie
+                                class="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-xl border border-gray-300 transition">
+                            Clôturer sans sanction
                         </button>
                     </form>
                 </div>
+
+                @if ($complaint->sanction === null)
+                    <x-sanction-form :complaint="$complaint" />
+                @endif
             @else
                 <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6">
                     <p class="text-sm text-gray-500">

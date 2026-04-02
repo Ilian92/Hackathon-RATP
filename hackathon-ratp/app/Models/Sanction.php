@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'type', 'description', 'sanctioned_at'])]
+#[Fillable(['user_id', 'complaint_id', 'type', 'description', 'sanctioned_at'])]
 class Sanction extends Model
 {
     /** @use HasFactory<SanctionFactory> */
@@ -25,5 +25,11 @@ class Sanction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return BelongsTo<Complaint, $this> */
+    public function complaint(): BelongsTo
+    {
+        return $this->belongsTo(Complaint::class);
     }
 }

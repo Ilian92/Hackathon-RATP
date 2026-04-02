@@ -54,6 +54,12 @@ class Complaint extends Model
         return $this->hasOne(Severity::class);
     }
 
+    /** @return HasOne<Sanction, $this> */
+    public function sanction(): HasOne
+    {
+        return $this->hasOne(Sanction::class);
+    }
+
     /** @return BelongsTo<User, $this> */
     public function comAgent(): BelongsTo
     {

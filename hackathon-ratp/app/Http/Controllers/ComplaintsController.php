@@ -56,4 +56,13 @@ class ComplaintsController extends Controller
             default => abort(403),
         };
     }
+
+    public function sanction(Request $request, Complaint $complaint): RedirectResponse
+    {
+        return match ($request->user()->role) {
+            UserRole::Manager => app(ManagerController::class)->sanction($complaint, $request),
+            UserRole::RH => app(RhController::class)->sanction($complaint, $request),
+            default => abort(403),
+        };
+    }
 }
