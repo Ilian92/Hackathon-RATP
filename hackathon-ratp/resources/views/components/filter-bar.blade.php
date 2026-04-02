@@ -8,10 +8,12 @@
     'typeId' => null,
     'severityFilter' => null,
     'driverFilter' => null,
+    'nature' => null,
+    'showNatureFilter' => false,
 ])
 
 @php
-    $hasActiveFilter = $typeId || $severityFilter !== null || $driverFilter;
+    $hasActiveFilter = $typeId || $severityFilter !== null || $driverFilter || $nature;
 @endphp
 
 <form method="GET" action="{{ $action }}" class="flex flex-wrap items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
@@ -40,6 +42,16 @@
                     {{ $driver->last_name }} {{ $driver->first_name }}
                 </option>
             @endforeach
+        </select>
+    @endif
+
+    @if ($showNatureFilter)
+        <select name="nature" onchange="this.form.submit()"
+                class="text-sm rounded-lg border-gray-200 py-1.5 pl-3 pr-8 shadow-sm focus:border-[#004fa3] focus:ring-[#004fa3]
+                       {{ $nature ? 'border-[#004fa3] text-[#004fa3] font-medium' : 'text-gray-600' }}">
+            <option value="">Tous les signalements</option>
+            <option value="positive" @selected($nature === 'positive')>Positifs uniquement</option>
+            <option value="negative" @selected($nature === 'negative')>Négatifs uniquement</option>
         </select>
     @endif
 

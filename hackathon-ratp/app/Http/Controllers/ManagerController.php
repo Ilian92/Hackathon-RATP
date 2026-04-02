@@ -22,7 +22,7 @@ class ManagerController extends Controller
         $driverIds = $manager->chauffeurs()->pluck('users.id');
         $tab = $request->string('tab')->toString() ?: 'pending';
 
-        $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus'];
+        $allowedSorts = ['incident_time', 'severity', 'type', 'driver', 'bus', 'negative'];
         $sort = in_array($request->string('sort')->toString(), $allowedSorts) ? $request->string('sort')->toString() : 'incident_time';
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
         $typeId = $request->integer('type') ?: null;
@@ -55,6 +55,7 @@ class ManagerController extends Controller
                 ->orderBy('driver_users.last_name', $direction),
             'bus' => $query->join('buses', 'buses.id', '=', 'complaints.bus_id')
                 ->orderBy('buses.code', $direction),
+            'negative' => $query->orderByRaw("complaints.negative {$direction} NULLS LAST"),
             default => $query->orderBy('complaints.incident_time', $direction),
         };
 
