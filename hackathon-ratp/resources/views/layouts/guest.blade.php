@@ -20,7 +20,7 @@
         <header class="bg-[#004fa3]">
             <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
                 <a href="/">
-                    <x-application-logo class="h-9 w-auto text-white" />
+                    <img src="{{ asset('images/Image1 (1).png') }}" alt="RATP Réseaux de Surface" class="h-16 w-auto" />
                 </a>
             </div>
             <div class="h-1 bg-[#4bc0ad]"></div>
