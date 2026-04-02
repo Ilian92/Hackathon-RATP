@@ -159,7 +159,7 @@
 
                 {{-- Gratifications + Sanctions --}}
                 <div class="flex gap-4 flex-1 min-h-0">
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
                         <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
                             <p class="text-base font-semibold text-gray-700">Gratifications</p>
                             @if ($user->gratifications->isNotEmpty())
@@ -181,7 +181,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-w-0 min-h-0">
                         <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
                             <p class="text-base font-semibold text-gray-700">Sanctions</p>
                         </div>
