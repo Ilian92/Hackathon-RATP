@@ -65,7 +65,13 @@ class AgentController extends Controller
             ->latest('incident_time')
             ->get();
 
-        return compact('pendingComplaints');
+        $rhComplaints = Complaint::where('manager_user_id', $user->id)
+            ->where('step', ComplaintStep::RHReview)
+            ->with(['complaintType', 'bus', 'driver', 'severity'])
+            ->latest('incident_time')
+            ->get();
+
+        return compact('pendingComplaints', 'rhComplaints');
     }
 
     /** @return array<string, mixed> */

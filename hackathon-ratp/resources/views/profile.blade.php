@@ -267,6 +267,41 @@
                     </div>
                 </div>
 
+                {{-- Dossiers transmis au RH --}}
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+                        <p class="text-base font-semibold text-gray-700">
+                            Dossiers transmis au RH
+                            <span class="text-[#004fa3]">{{ $rhComplaints->count() }}</span>
+                        </p>
+                        <a href="{{ route('complaints.index', ['tab' => 'rh']) }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">
+                            Voir tous →
+                        </a>
+                    </div>
+                    <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
+                        @forelse ($rhComplaints as $complaint)
+                            <a href="{{ route('complaints.show', $complaint) }}"
+                               class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">
+                                        {{ $complaint->driver?->first_name }} {{ $complaint->driver?->last_name }}
+                                        · Bus {{ $complaint->bus->code }}
+                                        · {{ $complaint->incident_time->format('d/m/Y') }}
+                                    </p>
+                                </div>
+                                @if ($complaint->severity)
+                                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 {{ $severityColors[$complaint->severity->level] }}">
+                                        Niveau {{ $complaint->severity->level }}
+                                    </span>
+                                @endif
+                            </a>
+                        @empty
+                            <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun dossier transmis au RH</p>
+                        @endforelse
+                    </div>
+                </div>
+
             @elseif ($user->role === \App\Enums\UserRole::Com)
                 {{-- Plaintes disponibles + mes dossiers --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
@@ -286,8 +321,7 @@
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium text-gray-800 truncate">{{ $complaint->complaintType->name }}</p>
                                     <p class="text-xs text-gray-400 mt-0.5">
-                                        {{ $complaint->driver?->first_name }} {{ $complaint->driver?->last_name }}
-                                        · Bus {{ $complaint->bus->code }}
+                                        Bus {{ $complaint->bus->code }}
                                         · {{ $complaint->incident_time->format('d/m/Y') }}
                                     </p>
                                 </div>

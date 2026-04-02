@@ -7,10 +7,15 @@
                         <img src="{{ asset('images/Image1 (1).png') }}" alt="RATP Réseaux de Surface" class="h-16 w-auto" />
                     </a>
                 </div>
-                <div class="hidden sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:gap-6">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         Tableau de bord
                     </x-nav-link>
+                    @if (in_array(Auth::user()->role, [\App\Enums\UserRole::Com, \App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
+                        <x-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
+                            Gestion des plaintes
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -60,6 +65,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 Tableau de bord
             </x-responsive-nav-link>
+            @if (in_array(Auth::user()->role, [\App\Enums\UserRole::Com, \App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
+                <x-responsive-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
+                    Gestion des plaintes
+                </x-responsive-nav-link>
+            @endif
         </div>
         <div class="pt-4 pb-1 border-t border-white/20">
             <div class="px-4">
