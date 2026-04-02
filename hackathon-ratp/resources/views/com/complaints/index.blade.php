@@ -10,15 +10,31 @@
                 @foreach (['available' => 'Disponibles', 'mine' => 'Mes dossiers', 'done' => 'Traités'] as $value => $label)
                     <a href="{{ route('complaints.index', array_filter(['tab' => $value, 'type' => $typeId, 'driver_id' => $driverFilter, 'severity' => $severityFilter], fn ($v) => $v !== null && $v !== '')) }}"
                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition
-                              {{ $tab === $value ? 'bg-[#004fa3] text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}">
+                              {{ $tab === $value && !$importantFilter ? 'bg-[#004fa3] text-white shadow-sm' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}">
                         {{ $label }}
                         <span class="text-xs px-1.5 py-0.5 rounded-full font-semibold
-                                     {{ $tab === $value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500' }}">
+                                     {{ $tab === $value && !$importantFilter ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500' }}">
                             {{ $counts[$value] }}
                         </span>
                     </a>
                 @endforeach
             </div>
+
+            {{-- Bouton plaintes importantes --}}
+            <a href="{{ $importantFilter ? route('complaints.index', array_filter(['tab' => $tab], fn ($v) => $v !== null)) : route('complaints.index', ['important' => 1]) }}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition shadow-sm border
+                      {{ $importantFilter
+                          ? 'bg-red-600 border-red-600 text-white'
+                          : 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100' }}">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                Plaintes importantes
+                <span class="text-xs px-1.5 py-0.5 rounded-full font-bold
+                             {{ $importantFilter ? 'bg-white/25 text-white' : 'bg-red-200 text-red-800' }}">
+                    {{ $importantCount }}
+                </span>
+            </a>
         </div>
 
         <x-filter-bar
@@ -39,6 +55,7 @@
                 'type'      => $typeId,
                 'driver_id' => $driverFilter,
                 'severity'  => $severityFilter,
+                'important' => $importantFilter ?: null,
             ], fn ($v) => $v !== null && $v !== '');
 
             $sortUrl = fn (string $col) => route('complaints.index', array_merge($currentFilters, [

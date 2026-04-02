@@ -28,6 +28,7 @@ class ComController extends Controller
         $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
         $severityFilter = $request->filled('severity') && in_array($request->integer('severity'), [0, 1, 2, 3, 4]) ? $request->integer('severity') : null;
         $driverFilter = $request->integer('driver_id') ?: null;
+        $importantFilter = $request->boolean('important');
 
         $query = Complaint::with(['complaintType', 'bus', 'driver', 'severity', 'comAgent'])
             ->select('complaints.*')
@@ -36,7 +37,8 @@ class ComController extends Controller
             ->when($tab === 'done', fn ($q) => $q->where('complaints.com_user_id', $userId)->where('complaints.step', '!=', ComplaintStep::ComReview))
             ->when($typeId, fn ($q) => $q->where('complaints.complaint_type_id', $typeId))
             ->when($driverFilter, fn ($q) => $q->where('complaints.user_id', $driverFilter))
-            ->when($severityFilter !== null, fn ($q) => $q->whereHas('severity', fn ($sq) => $sq->where('level', $severityFilter)));
+            ->when($severityFilter !== null, fn ($q) => $q->whereHas('severity', fn ($sq) => $sq->where('level', $severityFilter)))
+            ->when($importantFilter, fn ($q) => $q->whereHas('severity', fn ($sq) => $sq->whereIn('level', [3, 4])));
 
         match ($sort) {
             'severity' => $query->leftJoin('severities', 'severities.complaint_id', '=', 'complaints.id')
@@ -54,13 +56,21 @@ class ComController extends Controller
         $complaintTypes = ComplaintType::orderBy('name')->get();
         $drivers = User::where('role', UserRole::Chauffeur)->orderBy('last_name')->orderBy('first_name')->get(['id', 'first_name', 'last_name']);
 
+        $importantCount = Complaint::whereHas('severity', fn ($q) => $q->whereIn('level', [3, 4]))
+            ->where(function ($q) use ($userId) {
+                $q->where(fn ($q2) => $q2->where('step', ComplaintStep::ComReview)->whereNull('com_user_id'))
+                    ->orWhere(fn ($q2) => $q2->where('step', ComplaintStep::ComReview)->where('com_user_id', $userId))
+                    ->orWhere(fn ($q2) => $q2->where('com_user_id', $userId)->where('step', '!=', ComplaintStep::ComReview));
+            })
+            ->count();
+
         $counts = [
             'available' => Complaint::where('step', ComplaintStep::ComReview)->whereNull('com_user_id')->count(),
             'mine' => Complaint::where('step', ComplaintStep::ComReview)->where('com_user_id', $userId)->count(),
             'done' => Complaint::where('com_user_id', $userId)->where('step', '!=', ComplaintStep::ComReview)->count(),
         ];
 
-        return view('com.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter'));
+        return view('com.complaints.index', compact('complaints', 'complaintTypes', 'drivers', 'counts', 'importantCount', 'tab', 'typeId', 'sort', 'direction', 'severityFilter', 'driverFilter', 'importantFilter'));
     }
 
     public function show(Complaint $complaint): View
