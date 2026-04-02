@@ -812,5 +812,202 @@ class DatabaseSeeder extends Seeder
             'level' => 2,
             'justification' => "Incident confirmé par trois témoins. Le chauffeur a refusé d'attendre qu'une passagère âgée soit assise avant de redémarrer. Aucun antécédent similaire dans les 12 derniers mois.",
         ]);
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // DONNÉES SUPPLÉMENTAIRES POUR LES DASHBOARDS
+        // ═══════════════════════════════════════════════════════════════════════════
+
+        // ─── Complète l'historique des chauffeurs de l'équipe de Sophie ───────────
+        $teamHistory = [
+            // testDriver — plusieurs signalements négatifs anciens (clôturés)
+            ['driver' => $testDriver, 'negative' => true, 'level' => 2, 'daysAgo' => 55, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => ['type' => 'Avertissement', 'description' => 'Conduite brusque signalée par plusieurs passagers. Entretien effectué.', 'daysAgo' => 50]],
+            ['driver' => $testDriver, 'negative' => true, 'level' => 1, 'daysAgo' => 80, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
+            // teamDrivers[0] — historique varié
+            ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 3, 'daysAgo' => 40, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => ['type' => 'Mise à pied', 'description' => "Mise à pied d'un jour pour comportement discriminatoire envers un usager.", 'daysAgo' => 36]],
+            ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 1, 'daysAgo' => 75, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
+            ['driver' => $teamDrivers[0], 'negative' => false, 'level' => 3, 'daysAgo' => 60, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => null, 'gratification' => ['amount' => 80, 'reason' => "Aide spontanée à une famille avec poussette lors d'une avarie d'ascenseur.", 'daysAgo' => 55]],
+            // teamDrivers[1] — peu de signalements
+            ['driver' => $teamDrivers[1], 'negative' => true, 'level' => 2, 'daysAgo' => 65, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
+            // teamDrivers[2] — historique propre, un positif
+            ['driver' => $teamDrivers[2], 'negative' => false, 'level' => 4, 'daysAgo' => 45, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => null, 'gratification' => ['amount' => 200, 'reason' => "Comportement exemplaire lors d'une urgence médicale à bord. Gestes de premiers secours prodigués.", 'daysAgo' => 40]],
+        ];
+
+        foreach ($teamHistory as $data) {
+            $complaint = Complaint::factory()->create([
+                'user_id' => $data['driver']->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => $data['step'],
+                'status' => $data['status'],
+                'negative' => $data['negative'],
+                'com_user_id' => $testCom->id,
+                'manager_user_id' => $testManager->id,
+                'incident_time' => now()->subDays($data['daysAgo']),
+            ]);
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $data['level'],
+                'justification' => $this->aiNegativeJustifications[array_rand($this->aiNegativeJustifications)],
+            ]);
+            if (isset($data['sanction'])) {
+                Sanction::create([
+                    'user_id' => $data['driver']->id,
+                    'complaint_id' => $complaint->id,
+                    'type' => $data['sanction']['type'],
+                    'description' => $data['sanction']['description'],
+                    'sanctioned_at' => now()->subDays($data['sanction']['daysAgo'])->toDateString(),
+                ]);
+            }
+            if (isset($data['gratification'])) {
+                Gratification::create([
+                    'user_id' => $data['driver']->id,
+                    'complaint_id' => $complaint->id,
+                    'amount' => $data['gratification']['amount'],
+                    'reason' => $data['gratification']['reason'],
+                    'awarded_at' => now()->subDays($data['gratification']['daysAgo'])->toDateString(),
+                ]);
+            }
+        }
+
+        // ─── Dossiers traités ce mois par Marie Laurent (Com) ─────────────────────
+        $comTreatedThisMonth = [
+            ['negative' => true, 'level' => 1, 'nextStep' => ComplaintStep::ManagerReview],
+            ['negative' => true, 'level' => 2, 'nextStep' => ComplaintStep::ManagerReview],
+            ['negative' => true, 'level' => 3, 'nextStep' => ComplaintStep::RHReview],
+            ['negative' => true, 'level' => 4, 'nextStep' => ComplaintStep::RHReview],
+            ['negative' => true, 'level' => 0, 'nextStep' => ComplaintStep::Closed],
+            ['negative' => true, 'level' => 2, 'nextStep' => ComplaintStep::ManagerReview],
+            ['negative' => false, 'level' => 3, 'nextStep' => ComplaintStep::RHReview],
+            ['negative' => false, 'level' => 4, 'nextStep' => ComplaintStep::RHReview],
+            ['negative' => true, 'level' => 1, 'nextStep' => ComplaintStep::ManagerReview],
+            ['negative' => true, 'level' => 2, 'nextStep' => ComplaintStep::ManagerReview],
+            ['negative' => true, 'level' => 3, 'nextStep' => ComplaintStep::RHReview],
+            ['negative' => false, 'level' => 2, 'nextStep' => ComplaintStep::RHReview],
+        ];
+
+        foreach ($comTreatedThisMonth as $data) {
+            $complaint = Complaint::factory()->create([
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'user_id' => $drivers->random()->id,
+                'step' => $data['nextStep'],
+                'status' => $data['nextStep'] === ComplaintStep::Closed ? ComplaintStatus::Clos : ComplaintStatus::EnCours,
+                'negative' => $data['negative'],
+                'com_user_id' => $testCom->id,
+                'incident_time' => now()->subDays(fake()->numberBetween(2, 20)),
+                'updated_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1))),
+            ]);
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $data['level'],
+                'justification' => $data['negative']
+                    ? $this->aiNegativeJustifications[array_rand($this->aiNegativeJustifications)]
+                    : $this->aiPositiveJustifications[array_rand($this->aiPositiveJustifications)],
+            ]);
+        }
+
+        // ─── Dossiers clôturés ce mois par Claire Moreau (RH) ─────────────────────
+        $rhClosedThisMonth = [
+            ['negative' => true, 'level' => 3, 'sanction' => ['type' => 'Avertissement', 'description' => 'Comportement agressif répété. Avertissement formel notifié.']],
+            ['negative' => true, 'level' => 4, 'sanction' => ['type' => 'Mise à pied', 'description' => 'Mise à pied de 5 jours pour infraction grave au code de la route.']],
+            ['negative' => true, 'level' => 2, 'sanction' => ['type' => 'Avertissement', 'description' => 'Propos déplacés envers un usager. Rappel des règles de conduite professionnelle.']],
+            ['negative' => true, 'level' => 3, 'sanction' => ['type' => 'Blâme', 'description' => 'Récidive de conduite sans ceinture de sécurité. Blâme inscrit au dossier.']],
+            ['negative' => false, 'level' => 4, 'gratification' => ['amount' => 250, 'reason' => "Intervention héroïque lors d'un accident de circulation à bord. Comportement exemplaire unanimement salué."]],
+            ['negative' => false, 'level' => 3, 'gratification' => ['amount' => 120, 'reason' => "Accueil chaleureux et assistance remarquable envers des touristes lors d'une grève des transports."]],
+            ['negative' => true, 'level' => 1, 'sanction' => null],
+        ];
+
+        foreach ($rhClosedThisMonth as $data) {
+            $driver = $drivers->random();
+            $complaint = Complaint::factory()->create([
+                'user_id' => $driver->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => ComplaintStep::Closed,
+                'status' => isset($data['sanction']) && $data['sanction'] !== null ? ComplaintStatus::Abouti : (isset($data['gratification']) ? ComplaintStatus::Abouti : ComplaintStatus::Clos),
+                'negative' => $data['negative'],
+                'com_user_id' => $testCom->id,
+                'rh_user_id' => $testRh->id,
+                'incident_time' => now()->subDays(fake()->numberBetween(20, 45)),
+                'updated_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1))),
+            ]);
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $data['level'],
+                'justification' => $data['negative']
+                    ? $this->aiNegativeJustifications[array_rand($this->aiNegativeJustifications)]
+                    : $this->aiPositiveJustifications[array_rand($this->aiPositiveJustifications)],
+            ]);
+            if (! empty($data['sanction'])) {
+                Sanction::create([
+                    'user_id' => $driver->id,
+                    'complaint_id' => $complaint->id,
+                    'type' => $data['sanction']['type'],
+                    'description' => $data['sanction']['description'],
+                    'sanctioned_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1)))->toDateString(),
+                ]);
+            }
+            if (isset($data['gratification'])) {
+                Gratification::create([
+                    'user_id' => $driver->id,
+                    'complaint_id' => $complaint->id,
+                    'amount' => $data['gratification']['amount'],
+                    'reason' => $data['gratification']['reason'],
+                    'awarded_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1)))->toDateString(),
+                ]);
+            }
+        }
+
+        // ─── Dossiers clôturés ce mois par Sophie Lefèvre (Manager) ───────────────
+        $managerClosedThisMonth = [
+            ['driver' => $testDriver, 'negative' => true, 'level' => 1, 'status' => ComplaintStatus::Clos],
+            ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 0, 'status' => ComplaintStatus::Clos],
+            ['driver' => $teamDrivers[1], 'negative' => true, 'level' => 2, 'status' => ComplaintStatus::Clos],
+            ['driver' => $teamDrivers[2], 'negative' => true, 'level' => 1, 'status' => ComplaintStatus::Clos],
+            ['driver' => $testDriver, 'negative' => true, 'level' => 2, 'status' => ComplaintStatus::Abouti, 'sanction' => ['type' => 'Avertissement', 'description' => 'Deuxième incident en moins de deux mois. Avertissement formel.']],
+        ];
+
+        foreach ($managerClosedThisMonth as $data) {
+            $complaint = Complaint::factory()->create([
+                'user_id' => $data['driver']->id,
+                'bus_id' => $buses->random()->id,
+                'complaint_type_id' => $complaintTypes->random()->id,
+                'client_id' => $clients->random()->id,
+                'step' => ComplaintStep::Closed,
+                'status' => $data['status'],
+                'negative' => $data['negative'],
+                'com_user_id' => $testCom->id,
+                'manager_user_id' => $testManager->id,
+                'incident_time' => now()->subDays(fake()->numberBetween(25, 50)),
+                'updated_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1))),
+            ]);
+            Severity::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => $testCom->id,
+                'level' => $data['level'],
+                'justification' => $this->aiNegativeJustifications[array_rand($this->aiNegativeJustifications)],
+            ]);
+            if (! empty($data['sanction'])) {
+                Sanction::create([
+                    'user_id' => $data['driver']->id,
+                    'complaint_id' => $complaint->id,
+                    'type' => $data['sanction']['type'],
+                    'description' => $data['sanction']['description'],
+                    'sanctioned_at' => now()->startOfMonth()->addDays(fake()->numberBetween(0, max(0, now()->day - 1)))->toDateString(),
+                ]);
+            }
+        }
+
+        // ─── Avis de satisfaction supplémentaires ─────────────────────────────────
+        $allTeamDrivers = collect([$testDriver])->merge($teamDrivers);
+        foreach ($allTeamDrivers as $driver) {
+            Satisfaction::factory(fake()->numberBetween(8, 20))->create(['user_id' => $driver->id]);
+        }
     }
 }

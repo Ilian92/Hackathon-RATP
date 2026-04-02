@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\ComController;
 use App\Http\Controllers\ComplaintsController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicComplaintController;
@@ -20,9 +21,7 @@ Route::post('/qrcode/{token}/satisfaction', [QrCodeController::class, 'satisfact
 Route::get('/qrcode/{token}/complaint', [QrCodeController::class, 'complaintCreate'])->name('complaint.create');
 Route::post('/qrcode/{token}/complaint', [QrCodeController::class, 'complaintStore'])->name('complaint.store');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [AgentController::class, 'profile'])->name('profile');
