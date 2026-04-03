@@ -240,13 +240,36 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 8 plaintes graves sans qualification (pas encore analysées par l'IA)
-        Complaint::factory(8)
-            ->recycle($buses)
-            ->recycle($complaintTypes)
-            ->recycle($drivers)
-            ->recycle($clients)
-            ->create(['negative' => null, 'step' => ComplaintStep::ComReview, 'status' => ComplaintStatus::EnCours]);
+        // 8 plaintes pré-analysées par l'IA (mix négatif/positif, sans lien utilisateur)
+        $mixedComplaints = [
+            ['negative' => true,  'level' => 2, 'justification' => 'Comportement irrespectueux signalé par un usager. Incident isolé sans antécédent identifié sur les 12 derniers mois.'],
+            ['negative' => true,  'level' => 3, 'justification' => "Refus de prise en charge à l'arrêt signalé. Deuxième occurrence similaire détectée, aggravation du niveau."],
+            ['negative' => true,  'level' => 1, 'justification' => "Léger retard non justifié selon l'usager. Premier signalement, contexte à vérifier avec les données de planning."],
+            ['negative' => true,  'level' => 4, 'justification' => 'Conduite dangereuse en zone scolaire signalée par deux témoins indépendants. Risque élevé identifié.'],
+            ['negative' => true,  'level' => 2, 'justification' => 'Propos déplacés envers un passager rapportés par un témoin. Niveau modéré, vérification recommandée.'],
+            ['negative' => false, 'level' => 3, 'justification' => 'Aide proactive à un passager en fauteuil roulant, saluée par plusieurs témoins. Signal positif fort.'],
+            ['negative' => false, 'level' => 4, 'justification' => "Intervention exemplaire lors d'une malaise passager, ayant contacté les secours rapidement. Comportement remarquable."],
+            ['negative' => true,  'level' => 1, 'justification' => "Absence d'annonce d'arrêts signalée sur une portion du trajet. Impact mineur, premier signalement de ce type."],
+        ];
+
+        foreach ($mixedComplaints as $data) {
+            $c = Complaint::factory()
+                ->recycle($buses)
+                ->recycle($complaintTypes)
+                ->recycle($drivers)
+                ->recycle($clients)
+                ->create([
+                    'negative' => $data['negative'],
+                    'step' => ComplaintStep::ComReview,
+                    'status' => ComplaintStatus::EnCours,
+                ]);
+            Severity::create([
+                'complaint_id' => $c->id,
+                'user_id' => null,
+                'level' => $data['level'],
+                'justification' => $data['justification'],
+            ]);
+        }
 
         // ─── Avis de satisfaction ─────────────────────────────────────────────────
         Satisfaction::factory(50)->recycle($clients)->recycle($drivers)->create();
@@ -402,7 +425,7 @@ class DatabaseSeeder extends Seeder
         $availableForCom = [
             ['negative' => true,  'level' => 1, 'justification' => 'Incident isolé, premier signalement de ce type pour ce chauffeur. Aucun antécédent similaire constaté sur les 12 derniers mois.'],
             ['negative' => true,  'level' => 3, 'justification' => "Comportement signalé lors d'un contrôle de titre. Troisième signalement similaire en 6 mois identifié dans les données."],
-            ['negative' => null,  'level' => null, 'justification' => null],
+            ['negative' => true,  'level' => 2, 'justification' => "Vitesse excessive signalée en zone 30. Données GPS embarquées à croiser pour confirmer l'infraction."],
             ['negative' => true,  'level' => 2, 'justification' => 'Témoignages concordants de deux usagers. Impact réel mais sans mise en danger directe des passagers.'],
             ['negative' => false, 'level' => 3, 'justification' => 'Comportement proactif et bienveillant envers un usager en difficulté. Signal positif fort selon les témoins.'],
         ];
@@ -417,14 +440,12 @@ class DatabaseSeeder extends Seeder
                 'negative' => $data['negative'],
                 'com_user_id' => null,
             ]);
-            if ($data['level'] !== null) {
-                Severity::create([
-                    'complaint_id' => $c->id,
-                    'user_id' => null,
-                    'level' => $data['level'],
-                    'justification' => $data['justification'],
-                ]);
-            }
+            Severity::create([
+                'complaint_id' => $c->id,
+                'user_id' => null,
+                'level' => $data['level'],
+                'justification' => $data['justification'],
+            ]);
         }
 
         // 3 dossiers pris en charge par Marie Laurent (ComReview, com_user_id set)
