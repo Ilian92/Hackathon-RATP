@@ -4,25 +4,31 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ComplaintStep;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ComplaintResource;
 use App\Models\Complaint;
 use App\Models\Severity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ComplaintController extends Controller
 {
-    public function pending(): AnonymousResourceCollection
+    public function pending(): JsonResponse
     {
-        $complaints = Complaint::with(['complaintType'])
+        $complaint = Complaint::with('complaintType')
             ->where('step', ComplaintStep::ComReview)
             ->whereNull('com_user_id')
             ->whereDoesntHave('severity')
-            ->orderBy('created_at')
-            ->get();
+            ->oldest()
+            ->first();
 
-        return ComplaintResource::collection($complaints);
+        if (! $complaint) {
+            return response()->json(['message' => 'No pending complaint.'], 404);
+        }
+
+        return response()->json([
+            'id' => $complaint->id,
+            'complaint_type' => $complaint->complaintType?->name,
+            'description' => $complaint->description,
+        ]);
     }
 
     public function storeSeverity(Request $request): JsonResponse

@@ -84,7 +84,9 @@ class DashboardController extends Controller
                 'complaints as positive_complaints' => fn ($q) => $q->where('negative', false),
                 'sanctions',
                 'gratifications',
+                'satisfactions as satisfactions_count',
             ])
+            ->withAvg('satisfactions as avg_satisfaction', 'note')
             ->orderBy('users.last_name')
             ->get(['users.id', 'users.first_name', 'users.last_name']);
 
@@ -127,11 +129,24 @@ class DashboardController extends Controller
             ->where('status', MissionMoucheStatus::Completee)
             ->count();
 
+        $satisfactionTrend = collect(range(5, 0))->map(function ($monthsAgo) use ($driverIds) {
+            $date = now()->subMonths($monthsAgo);
+            $avg = Satisfaction::whereIn('user_id', $driverIds)
+                ->whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->avg('note');
+
+            return [
+                'label' => ucfirst($date->translatedFormat('M')),
+                'avg5' => $avg !== null ? round($avg / 2, 1) : null,
+            ];
+        })->values();
+
         return view('manager.dashboard', compact(
             'pendingCount', 'rhCount', 'closedThisMonth', 'teamCount',
             'stepBreakdown', 'natureBreakdown', 'severityDistribution', 'teamStats',
             'avgDaysToClose', 'teamSatisfaction', 'agingPending', 'monthlyVolume',
-            'pendingMissionDecisionCount'
+            'pendingMissionDecisionCount', 'satisfactionTrend'
         ));
     }
 
@@ -204,6 +219,18 @@ class DashboardController extends Controller
         $globalSatisfaction = Satisfaction::selectRaw('ROUND(AVG(note)::numeric, 1) as avg, COUNT(*) as total')
             ->first();
 
+        $satisfactionTrend = collect(range(5, 0))->map(function ($monthsAgo) {
+            $date = now()->subMonths($monthsAgo);
+            $avg = Satisfaction::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->avg('note');
+
+            return [
+                'label' => ucfirst($date->translatedFormat('M')),
+                'avg5' => $avg !== null ? round($avg / 2, 1) : null,
+            ];
+        })->values();
+
         // Volume de plaintes reçues par mois (6 derniers mois)
         $monthlyVolume = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
@@ -219,7 +246,7 @@ class DashboardController extends Controller
         return view('com.dashboard', compact(
             'availableCount', 'myInProgressCount', 'treatedThisMonth', 'treatedLastMonth',
             'totalTreated', 'severityDistribution', 'positiveCount', 'negativeCount', 'typeBreakdown',
-            'avgWaitInQueue', 'stalledCount', 'globalSatisfaction', 'monthlyVolume'
+            'avgWaitInQueue', 'stalledCount', 'globalSatisfaction', 'satisfactionTrend', 'monthlyVolume'
         ));
     }
 
@@ -288,6 +315,18 @@ class DashboardController extends Controller
         $globalSatisfaction = Satisfaction::selectRaw('ROUND(AVG(note)::numeric, 1) as avg, COUNT(*) as total')
             ->first();
 
+        $satisfactionTrend = collect(range(5, 0))->map(function ($monthsAgo) {
+            $date = now()->subMonths($monthsAgo);
+            $avg = Satisfaction::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->avg('note');
+
+            return [
+                'label' => ucfirst($date->translatedFormat('M')),
+                'avg5' => $avg !== null ? round($avg / 2, 1) : null,
+            ];
+        })->values();
+
         // Taux de dossiers clôturés avec action (abouti) vs sans suite
         $allClosedCount = Complaint::where('step', ComplaintStep::Closed)->count();
         $aboutiCount = Complaint::where('step', ComplaintStep::Closed)
@@ -315,7 +354,7 @@ class DashboardController extends Controller
             'availableCount', 'myInProgressCount', 'closedThisMonth', 'sanctionsThisMonth',
             'gratificationsThisMonth', 'allClosedPositive', 'allClosedNegative',
             'severityDistribution', 'sanctionTypeBreakdown', 'recentSanctions', 'recentGratifications',
-            'avgDaysToClose', 'globalSatisfaction', 'aboutiRate', 'monthlyVolume', 'allClosedCount', 'aboutiCount'
+            'avgDaysToClose', 'globalSatisfaction', 'satisfactionTrend', 'aboutiRate', 'monthlyVolume', 'allClosedCount', 'aboutiCount'
         ));
     }
 }
