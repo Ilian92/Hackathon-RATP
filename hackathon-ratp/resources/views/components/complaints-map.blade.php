@@ -59,7 +59,7 @@
 
     {{-- Loading overlay --}}
     <div x-show="loading" class="relative">
-        <div class="absolute inset-0 bg-white/70 z-[1000] flex items-center justify-center" style="height: 420px;">
+        <div class="absolute inset-0 bg-white/70 z-[1000] flex items-center justify-center" style="height: 640px;">
             <div class="flex items-center gap-2 text-sm text-gray-500">
                 <svg class="animate-spin h-4 w-4 text-[#004fa3]" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -71,7 +71,7 @@
     </div>
 
     {{-- Map container --}}
-    <div id="complaints-map" style="height: 420px; z-index: 0;"></div>
+    <div id="complaints-map" style="height: 640px; z-index: 0;"></div>
 
     {{-- Legend --}}
     <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-4">
