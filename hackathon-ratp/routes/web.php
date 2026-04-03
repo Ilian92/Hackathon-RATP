@@ -5,6 +5,7 @@ use App\Http\Controllers\ComController;
 use App\Http\Controllers\ComplaintsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\MissionMoucheController;
 use App\Http\Controllers\MoucheDashboardController;
 use App\Http\Controllers\ProfileController;
@@ -54,6 +55,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/mouche/dashboard', [MoucheDashboardController::class, 'index'])->name('mouche.dashboard');
     Route::get('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'create'])->name('rapport.create');
     Route::post('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'store'])->name('rapport.store');
+
+    Route::get('/map-data', [MapController::class, 'data'])->name('map.data');
 
     Route::get('/manage-profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/manage-profile', [ProfileController::class, 'update'])->name('profile.update');

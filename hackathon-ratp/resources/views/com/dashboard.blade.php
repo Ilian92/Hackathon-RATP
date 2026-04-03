@@ -184,5 +184,8 @@
 
         </div>
 
+        {{-- Carte interactive des lignes --}}
+        <x-complaints-map />
+
     </div>
 </x-app-layout>
