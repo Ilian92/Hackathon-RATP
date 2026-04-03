@@ -37,6 +37,13 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+    public function rgpd(Request $request): View
+    {
+        return view('profile.rgpd', [
+            'user' => $request->user(),
+        ]);
+    }
+
     /**
      * Delete the user's account.
      */

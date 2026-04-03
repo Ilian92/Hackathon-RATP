@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/manage-profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/manage-profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/manage-profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/manage-profile/rgpd', [ProfileController::class, 'rgpd'])->name('profile.rgpd');
 });
 
 require __DIR__.'/auth.php';
