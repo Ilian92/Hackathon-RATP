@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ComplaintStatus;
 use App\Enums\ComplaintStep;
+use App\Enums\MissionMoucheStatus;
 use App\Enums\UserRole;
 use App\Models\Complaint;
 use App\Models\User;
@@ -22,7 +23,8 @@ class AgentController extends Controller
             UserRole::Manager => $this->managerData($user),
             UserRole::Com => $this->comData($user),
             UserRole::RH => $this->rhData($user),
-            UserRole::Avocat, UserRole::Mouche => [],
+            UserRole::Mouche => $this->moucheData($user),
+            UserRole::Avocat => [],
         };
 
         return view('profile', array_merge(['user' => $user], $data));
@@ -93,6 +95,31 @@ class AgentController extends Controller
             ->get();
 
         return compact('availableComplaints', 'myComplaints');
+    }
+
+    /** @return array<string, mixed> */
+    private function moucheData(User $user): array
+    {
+        $pendingMissions = $user->missionsAsMouche()
+            ->whereIn('mission_mouches.status', [MissionMoucheStatus::EnCours->value, MissionMoucheStatus::Completee->value])
+            ->wherePivotNull('submitted_at')
+            ->with('driver')
+            ->latest('mission_mouches.created_at')
+            ->get();
+
+        $submittedMissions = $user->missionsAsMouche()
+            ->wherePivotNotNull('submitted_at')
+            ->with(['driver', 'rapports' => fn ($q) => $q->where('mouche_user_id', $user->id)])
+            ->latest('mission_mouches.created_at')
+            ->get();
+
+        $totalMissions = $pendingMissions->count() + $submittedMissions->count();
+
+        $avgScore = $user->rapportsMouche()
+            ->selectRaw('ROUND(AVG((ponctualite + conduite + politesse + tenue + securite) / 5.0)::numeric, 1) as avg')
+            ->value('avg');
+
+        return compact('pendingMissions', 'submittedMissions', 'totalMissions', 'avgScore');
     }
 
     /** @return array<string, mixed> */

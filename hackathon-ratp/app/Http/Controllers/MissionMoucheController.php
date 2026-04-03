@@ -9,6 +9,7 @@ use App\Models\MissionMouche;
 use App\Models\Sanction;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -34,20 +35,21 @@ class MissionMoucheController extends Controller
             ->orderBy('users.last_name')
             ->get(['users.id', 'users.first_name', 'users.last_name']);
 
-        $mouches = User::where('role', UserRole::Mouche)
-            ->orderBy('last_name')
-            ->get(['id', 'first_name', 'last_name']);
+        // Prévisualisation : les 3 mouches qui seraient auto-sélectionnées
+        $autoMouches = $this->selectMouches(3);
 
-        return view('manager.missions.create', compact('drivers', 'mouches'));
+        return view('manager.missions.create', compact('drivers', 'autoMouches'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'driver_user_id' => ['required', 'exists:users,id'],
-            'mouche_ids' => ['required', 'array', 'min:1', 'max:3'],
-            'mouche_ids.*' => ['exists:users,id'],
         ]);
+
+        $moucheIds = $this->selectMouches(3)->pluck('id');
+
+        abort_if($moucheIds->isEmpty(), 422, 'Aucun agent mouche disponible dans le système.');
 
         $mission = MissionMouche::create([
             'driver_user_id' => $validated['driver_user_id'],
@@ -55,10 +57,30 @@ class MissionMoucheController extends Controller
             'status' => MissionMoucheStatus::EnCours,
         ]);
 
-        $mission->mouches()->attach($validated['mouche_ids']);
+        $mission->mouches()->attach($moucheIds);
 
         return redirect()->route('missions.show', $mission)
-            ->with('success', 'Mission créée. Les mouches ont été assignées.');
+            ->with('success', 'Mission créée. '.$moucheIds->count().' mouche(s) assignée(s) automatiquement.');
+    }
+
+    /**
+     * Sélectionne les $count mouches ayant le moins de missions actives (EnCours ou Completee).
+     *
+     * @return Collection<int, User>
+     */
+    private function selectMouches(int $count): Collection
+    {
+        return User::where('role', UserRole::Mouche)
+            ->withCount([
+                'missionsAsMouche as active_missions' => fn ($q) => $q->whereIn(
+                    'mission_mouches.status',
+                    [MissionMoucheStatus::EnCours->value, MissionMoucheStatus::Completee->value]
+                ),
+            ])
+            ->orderBy('active_missions')
+            ->orderBy('last_name')
+            ->limit($count)
+            ->get();
     }
 
     public function show(MissionMouche $mission): View

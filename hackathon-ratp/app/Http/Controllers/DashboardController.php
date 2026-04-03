@@ -26,7 +26,7 @@ class DashboardController extends Controller
             UserRole::Manager => $this->managerDashboard($user),
             UserRole::Com => $this->comDashboard($user),
             UserRole::RH => $this->rhDashboard($user),
-            UserRole::Mouche => redirect()->route('mouche.dashboard'),
+            UserRole::Mouche, UserRole::Chauffeur => redirect()->route('profile'),
             default => view('dashboard'),
         };
     }

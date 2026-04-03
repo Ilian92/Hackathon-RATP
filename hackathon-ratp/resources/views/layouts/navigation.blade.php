@@ -8,9 +8,11 @@
                     </a>
                 </div>
                 <div class="hidden sm:-my-px sm:ms-10 sm:flex sm:gap-6">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        Tableau de bord
-                    </x-nav-link>
+                    @unless (in_array(Auth::user()->role, [\App\Enums\UserRole::Mouche, \App\Enums\UserRole::Chauffeur]))
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            Tableau de bord
+                        </x-nav-link>
+                    @endunless
                     @if (in_array(Auth::user()->role, [\App\Enums\UserRole::Com, \App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
                         <x-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
                             Gestion des plaintes
@@ -67,9 +69,11 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-[#003d80]">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                Tableau de bord
-            </x-responsive-nav-link>
+            @unless (in_array(Auth::user()->role, [\App\Enums\UserRole::Mouche, \App\Enums\UserRole::Chauffeur]))
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    Tableau de bord
+                </x-responsive-nav-link>
+            @endunless
             @if (in_array(Auth::user()->role, [\App\Enums\UserRole::Com, \App\Enums\UserRole::Manager, \App\Enums\UserRole::RH]))
                 <x-responsive-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
                     Gestion des plaintes

@@ -38,37 +38,35 @@
                 @endif
             </div>
 
-            {{-- Mouches assignées --}}
+            {{-- Mouches assignées automatiquement --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
                 <div>
                     <h2 class="text-sm font-semibold text-gray-800">Mouches assignées</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Sélectionnez jusqu'à 3 agents mouche pour cette mission.</p>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        Les agents sont sélectionnés automatiquement selon leur disponibilité (moins de missions actives en priorité).
+                    </p>
                 </div>
 
-                @if ($mouches->isEmpty())
-                    <p class="text-sm text-gray-400">Aucun agent mouche disponible dans le système.</p>
+                @if ($autoMouches->isEmpty())
+                    <div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+                        Aucun agent mouche disponible. La mission ne peut pas être créée.
+                    </div>
                 @else
-                    @error('mouche_ids')
-                        <p class="text-xs text-red-500">{{ $message }}</p>
-                    @enderror
                     <div class="space-y-2">
-                        @foreach ($mouches as $mouche)
-                            <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox"
-                                       name="mouche_ids[]"
-                                       value="{{ $mouche->id }}"
-                                       {{ in_array($mouche->id, old('mouche_ids', [])) ? 'checked' : '' }}
-                                       class="rounded border-gray-300 text-[#004fa3] focus:ring-[#004fa3]/40"
-                                       x-data
-                                       @change="
-                                           const checked = document.querySelectorAll('input[name=\'mouche_ids[]\']:checked');
-                                           if (checked.length > 3) { $el.checked = false; }
-                                       ">
-                                <span class="text-sm text-gray-800">{{ $mouche->last_name }} {{ $mouche->first_name }}</span>
-                            </label>
+                        @foreach ($autoMouches as $mouche)
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-[#004fa3]/5 border border-[#004fa3]/15">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-full bg-[#004fa3]/20 flex items-center justify-center shrink-0">
+                                        <span class="text-xs font-bold text-[#004fa3]">
+                                            {{ strtoupper(substr($mouche->first_name, 0, 1) . substr($mouche->last_name, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-800">{{ $mouche->last_name }} {{ $mouche->first_name }}</span>
+                                </div>
+                                <span class="text-xs text-gray-400">{{ $mouche->active_missions }} mission{{ $mouche->active_missions > 1 ? 's' : '' }} active{{ $mouche->active_missions > 1 ? 's' : '' }}</span>
+                            </div>
                         @endforeach
                     </div>
-                    <p class="text-xs text-gray-400">Maximum 3 mouches par mission.</p>
                 @endif
             </div>
 
@@ -78,7 +76,8 @@
                     Annuler
                 </a>
                 <button type="submit"
-                        class="px-5 py-2 bg-[#004fa3] text-white text-sm font-semibold rounded-lg hover:bg-[#003d80] transition">
+                        @if ($autoMouches->isEmpty()) disabled @endif
+                        class="px-5 py-2 bg-[#004fa3] text-white text-sm font-semibold rounded-lg hover:bg-[#003d80] transition disabled:opacity-40 disabled:cursor-not-allowed">
                     Lancer la mission
                 </button>
             </div>

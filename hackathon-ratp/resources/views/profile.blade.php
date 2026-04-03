@@ -265,37 +265,6 @@
                     </div>
                 </div>
 
-                {{-- Équipe de chauffeurs --}}
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
-                    <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
-                        <p class="text-base font-semibold text-gray-700">Mon équipe — {{ $user->chauffeurs->count() }} chauffeurs</p>
-                    </div>
-                    <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
-                        @forelse ($user->chauffeurs as $chauffeur)
-                            <a href="{{ route('drivers.show', $chauffeur) }}"
-                               class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-[#004fa3]/10 flex items-center justify-center shrink-0">
-                                        <span class="text-xs font-bold text-[#004fa3]">
-                                            {{ strtoupper(substr($chauffeur->first_name, 0, 1).substr($chauffeur->last_name, 0, 1)) }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">{{ $chauffeur->first_name }} {{ $chauffeur->last_name }}</p>
-                                        <p class="text-xs text-gray-400 font-mono">{{ $chauffeur->matricule }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-3 text-xs text-gray-400">
-                                    <span>{{ $chauffeur->complaints->count() }} plaintes</span>
-                                    <span>{{ $chauffeur->sanctions->count() }} sanctions</span>
-                                </div>
-                            </a>
-                        @empty
-                            <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun chauffeur dans l'équipe</p>
-                        @endforelse
-                    </div>
-                </div>
-
                 {{-- Dossiers transmis au RH --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
                     <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
@@ -327,6 +296,37 @@
                             </a>
                         @empty
                             <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun dossier transmis au RH</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                {{-- Équipe de chauffeurs --}}
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
+                        <p class="text-base font-semibold text-gray-700">Mon équipe — {{ $user->chauffeurs->count() }} chauffeurs</p>
+                    </div>
+                    <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
+                        @forelse ($user->chauffeurs as $chauffeur)
+                            <a href="{{ route('drivers.show', $chauffeur) }}"
+                               class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-gray-50 transition block">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[#004fa3]/10 flex items-center justify-center shrink-0">
+                                        <span class="text-xs font-bold text-[#004fa3]">
+                                            {{ strtoupper(substr($chauffeur->first_name, 0, 1).substr($chauffeur->last_name, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">{{ $chauffeur->first_name }} {{ $chauffeur->last_name }}</p>
+                                        <p class="text-xs text-gray-400 font-mono">{{ $chauffeur->matricule }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 text-xs text-gray-400">
+                                    <span>{{ $chauffeur->complaints->count() }} plaintes</span>
+                                    <span>{{ $chauffeur->sanctions->count() }} sanctions</span>
+                                </div>
+                            </a>
+                        @empty
+                            <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun chauffeur dans l'équipe</p>
                         @endforelse
                     </div>
                 </div>
@@ -450,6 +450,106 @@
                             <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun dossier en cours</p>
                         @endforelse
                     </div>
+                </div>
+
+            @elseif ($user->role === \App\Enums\UserRole::Mouche)
+
+                {{-- KPI --}}
+                <div class="grid grid-cols-3 gap-4 shrink-0">
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+                        <p class="text-2xl font-bold text-[#004fa3]">{{ $totalMissions }}</p>
+                        <p class="text-xs text-gray-400 mt-1">Missions total</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+                        <p class="text-2xl font-bold text-amber-500">{{ $pendingMissions->count() }}</p>
+                        <p class="text-xs text-gray-400 mt-1">Rapport à soumettre</p>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+                        @if ($avgScore !== null)
+                            <p class="text-2xl font-bold text-emerald-600">{{ $avgScore }}<span class="text-sm font-normal text-gray-400">/5</span></p>
+                        @else
+                            <p class="text-2xl font-bold text-gray-300">—</p>
+                        @endif
+                        <p class="text-xs text-gray-400 mt-1">Note moy. attribuée</p>
+                    </div>
+                </div>
+
+                {{-- Missions en attente --}}
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0">
+                    <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between shrink-0">
+                        <p class="text-base font-semibold text-gray-700">Missions à traiter</p>
+                        <a href="{{ route('mouche.dashboard') }}" class="text-xs text-[#004fa3] hover:text-[#003d80] font-medium">Voir tableau de bord →</a>
+                    </div>
+                    <div class="overflow-y-auto flex-1 divide-y divide-gray-50">
+                        @forelse ($pendingMissions as $mission)
+                            <div class="px-5 py-3 flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">Mission de contrôle</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Assignée le {{ $mission->created_at->format('d/m/Y') }}</p>
+                                </div>
+                                <a href="{{ route('rapport.create', $mission) }}"
+                                   class="shrink-0 text-xs font-semibold px-3 py-1.5 bg-[#004fa3] text-white rounded-lg hover:bg-[#003d80] transition">
+                                    Remplir →
+                                </a>
+                            </div>
+                        @empty
+                            <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucune mission en attente.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                {{-- Rapports soumis --}}
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-gray-100 shrink-0">
+                        <p class="text-base font-semibold text-gray-700">Rapports soumis <span class="text-[#004fa3]">{{ $submittedMissions->count() }}</span></p>
+                    </div>
+                    @if ($submittedMissions->isEmpty())
+                        <p class="px-5 py-6 text-sm text-gray-400 text-center">Aucun rapport soumis.</p>
+                    @else
+                        <div class="overflow-y-auto flex-1">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-50 bg-gray-50 text-xs uppercase tracking-wide text-gray-400">
+                                        <th class="px-5 py-3 text-left">Date mission</th>
+                                        <th class="px-5 py-3 text-center">Note moyenne</th>
+                                        <th class="px-5 py-3 text-center">Statut mission</th>
+                                        <th class="px-5 py-3 text-right">Soumis le</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    @foreach ($submittedMissions as $mission)
+                                        @php
+                                            $rapport = $mission->rapports->first();
+                                            $avg = $rapport?->averageScore();
+                                            $statusLabels = ['EnCours' => 'En cours', 'Completee' => 'Complétée', 'Decidee' => 'Décidée'];
+                                            $statusColors = ['EnCours' => 'bg-blue-100 text-blue-700', 'Completee' => 'bg-amber-100 text-amber-700', 'Decidee' => 'bg-gray-100 text-gray-600'];
+                                            $sk = $mission->status->value;
+                                        @endphp
+                                        <tr>
+                                            <td class="px-5 py-3 text-gray-700">{{ $mission->created_at->format('d/m/Y') }}</td>
+                                            <td class="px-5 py-3 text-center">
+                                                @if ($avg !== null)
+                                                    <span class="text-sm font-bold {{ $avg >= 4 ? 'text-emerald-600' : ($avg >= 3 ? 'text-amber-500' : 'text-red-600') }}">
+                                                        {{ $avg }}/5
+                                                    </span>
+                                                @else
+                                                    <span class="text-gray-400 text-xs">—</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-5 py-3 text-center">
+                                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full {{ $statusColors[$sk] ?? 'bg-gray-100 text-gray-600' }}">
+                                                    {{ $statusLabels[$sk] ?? $sk }}
+                                                </span>
+                                            </td>
+                                            <td class="px-5 py-3 text-right text-xs text-gray-400">
+                                                {{ $mission->pivot->submitted_at ? \Carbon\Carbon::parse($mission->pivot->submitted_at)->format('d/m/Y') : '—' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
                 </div>
 
             @else
