@@ -22,7 +22,10 @@ class MapController extends Controller
             default => null,
         };
 
+        $centreBusIds = $request->user()->centreBuses()->pluck('centre_buses.id');
+
         $lines = Ligne::with('arrets')
+            ->whereIn('centre_bus_id', $centreBusIds)
             ->get()
             ->map(function (Ligne $ligne) use ($startDate, $nature, $severity) {
                 $query = DB::table('complaints')
