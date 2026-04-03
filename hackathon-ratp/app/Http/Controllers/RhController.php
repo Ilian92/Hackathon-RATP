@@ -10,6 +10,10 @@ use App\Models\ComplaintType;
 use App\Models\Gratification;
 use App\Models\Sanction;
 use App\Models\User;
+use App\Notifications\ComplaintClosedNotification;
+use App\Notifications\DriverComplaintClosedNotification;
+use App\Notifications\GratificationNotification;
+use App\Notifications\SanctionNotification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -105,7 +109,7 @@ class RhController extends Controller
             'description' => ['required', 'string', 'max:2000'],
         ]);
 
-        Sanction::create([
+        $sanction = Sanction::create([
             'user_id' => $complaint->user_id,
             'complaint_id' => $complaint->id,
             'type' => $validated['type'],
@@ -117,6 +121,16 @@ class RhController extends Controller
             'step' => ComplaintStep::Closed,
             'status' => ComplaintStatus::Abouti,
         ]);
+
+        if ($complaint->user_id) {
+            $complaint->driver?->notify(new SanctionNotification($sanction));
+        }
+        if ($complaint->com_user_id) {
+            $complaint->comAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
+        if ($complaint->manager_user_id) {
+            $complaint->managerAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Sanction enregistrée — dossier clôturé.');
@@ -147,7 +161,7 @@ class RhController extends Controller
             'amount' => ['nullable', 'integer', 'min:0', 'max:10000'],
         ]);
 
-        Gratification::create([
+        $gratification = Gratification::create([
             'user_id' => $complaint->user_id,
             'complaint_id' => $complaint->id,
             'reason' => $validated['reason'],
@@ -159,6 +173,16 @@ class RhController extends Controller
             'step' => ComplaintStep::Closed,
             'status' => ComplaintStatus::Abouti,
         ]);
+
+        if ($complaint->user_id) {
+            $complaint->driver?->notify(new GratificationNotification($gratification));
+        }
+        if ($complaint->com_user_id) {
+            $complaint->comAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
+        if ($complaint->manager_user_id) {
+            $complaint->managerAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Gratification enregistrée — dossier clôturé.');
@@ -174,6 +198,16 @@ class RhController extends Controller
             'step' => ComplaintStep::Closed,
             'status' => ComplaintStatus::Abouti,
         ]);
+
+        if ($complaint->user_id) {
+            $complaint->driver?->notify(new DriverComplaintClosedNotification($complaint->load('bus')));
+        }
+        if ($complaint->com_user_id) {
+            $complaint->comAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
+        if ($complaint->manager_user_id) {
+            $complaint->managerAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier clôturé — plainte aboutie.');

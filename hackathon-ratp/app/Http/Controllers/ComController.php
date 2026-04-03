@@ -11,6 +11,10 @@ use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Severity;
 use App\Models\User;
+use App\Notifications\ComplaintAssignedToManagerNotification;
+use App\Notifications\ComplaintSentDirectlyToRHNotification;
+use App\Notifications\ComplaintSentToRHNotification;
+use App\Notifications\HighSeverityComplaintNotification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -107,6 +111,21 @@ class ComController extends Controller
         return view('com.complaints.show', compact('complaint', 'substituteManagers'));
     }
 
+    private function notifyRhUsers(Complaint $complaint): void
+    {
+        User::where('role', UserRole::RH)->get()
+            ->each(fn (User $rh) => $rh->notify(new ComplaintSentToRHNotification($complaint->load('bus'))));
+    }
+
+    private function notifyManagerDirectRH(Complaint $complaint): void
+    {
+        $complaint->loadMissing('driver.managers');
+        $manager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
+        if ($manager) {
+            $manager->notify(new ComplaintSentDirectlyToRHNotification($complaint->load(['bus', 'severity'])));
+        }
+    }
+
     public function claim(Complaint $complaint, Request $request): RedirectResponse
     {
         if ($complaint->step !== ComplaintStep::ComReview || $complaint->com_user_id !== null) {
@@ -154,9 +173,20 @@ class ComController extends Controller
                 ->with('success', 'Évaluation enregistrée — dossier annulé.');
         }
 
+        // Notifier les autres agents Com des dossiers niveau 3-4
+        if ($level >= 3) {
+            User::where('role', UserRole::Com)
+                ->where('id', '!=', $request->user()->id)
+                ->get()
+                ->each(fn (User $com) => $com->notify(new HighSeverityComplaintNotification($complaint->load('bus'), $level)));
+        }
+
         // Signalement positif : transmis directement au RH
         if ($isNegative === false) {
             $complaint->update(['step' => ComplaintStep::RHReview]);
+
+            $this->notifyRhUsers($complaint);
+            $this->notifyManagerDirectRH($complaint);
 
             return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Signalement positif enregistré — dossier transmis au service RH.');
@@ -165,6 +195,9 @@ class ComController extends Controller
         // Signalement négatif, niveau 3-4 : transmis directement au RH
         if ($level >= 3) {
             $complaint->update(['step' => ComplaintStep::RHReview]);
+
+            $this->notifyRhUsers($complaint);
+            $this->notifyManagerDirectRH($complaint);
 
             return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
@@ -179,6 +212,8 @@ class ComController extends Controller
                 'step' => ComplaintStep::ManagerReview,
                 'manager_user_id' => $activeManager->id,
             ]);
+
+            $activeManager->notify(new ComplaintAssignedToManagerNotification($complaint->load('bus')));
 
             return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Évaluation enregistrée — dossier transmis au manager.');
@@ -202,6 +237,8 @@ class ComController extends Controller
                 'step' => ComplaintStep::ManagerReview,
                 'manager_user_id' => $substituteManager->id,
             ]);
+
+            $substituteManager->notify(new ComplaintAssignedToManagerNotification($complaint->load('bus')));
 
             return redirect()->route('complaints.show', $complaint)
                 ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');

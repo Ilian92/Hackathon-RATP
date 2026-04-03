@@ -9,6 +9,10 @@ use App\Models\Complaint;
 use App\Models\ComplaintType;
 use App\Models\Sanction;
 use App\Models\User;
+use App\Notifications\ComplaintClosedNotification;
+use App\Notifications\ComplaintSentToRHNotification;
+use App\Notifications\DriverComplaintClosedNotification;
+use App\Notifications\SanctionNotification;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -119,6 +123,9 @@ class ManagerController extends Controller
 
         $complaint->update(['step' => ComplaintStep::RHReview]);
 
+        User::where('role', UserRole::RH)->get()
+            ->each(fn (User $rh) => $rh->notify(new ComplaintSentToRHNotification($complaint->load('bus'))));
+
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier transmis au service RH.');
     }
@@ -155,7 +162,7 @@ class ManagerController extends Controller
             'description' => ['required', 'string', 'max:2000'],
         ]);
 
-        Sanction::create([
+        $sanction = Sanction::create([
             'user_id' => $complaint->user_id,
             'complaint_id' => $complaint->id,
             'type' => $validated['type'],
@@ -167,6 +174,13 @@ class ManagerController extends Controller
             'step' => ComplaintStep::Closed,
             'status' => ComplaintStatus::Abouti,
         ]);
+
+        if ($complaint->user_id) {
+            $complaint->driver?->notify(new SanctionNotification($sanction));
+        }
+        if ($complaint->com_user_id) {
+            $complaint->comAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Sanction enregistrée — dossier clôturé.');
@@ -184,6 +198,13 @@ class ManagerController extends Controller
             'step' => ComplaintStep::Closed,
             'status' => ComplaintStatus::Clos,
         ]);
+
+        if ($complaint->user_id) {
+            $complaint->driver?->notify(new DriverComplaintClosedNotification($complaint->load('bus')));
+        }
+        if ($complaint->com_user_id) {
+            $complaint->comAgent?->notify(new ComplaintClosedNotification($complaint->load('bus')));
+        }
 
         return redirect()->route('complaints.show', $complaint)
             ->with('success', 'Dossier clôturé.');

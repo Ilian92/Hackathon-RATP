@@ -23,6 +23,14 @@ use App\Models\Sanction;
 use App\Models\Satisfaction;
 use App\Models\Severity;
 use App\Models\User;
+use App\Notifications\ComplaintAssignedToManagerNotification;
+use App\Notifications\ComplaintClosedNotification;
+use App\Notifications\ComplaintSentDirectlyToRHNotification;
+use App\Notifications\ComplaintSentToRHNotification;
+use App\Notifications\DriverComplaintClosedNotification;
+use App\Notifications\GratificationNotification;
+use App\Notifications\HighSeverityComplaintNotification;
+use App\Notifications\SanctionNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -1248,5 +1256,100 @@ class DatabaseSeeder extends Seeder
             'description' => 'Blâme formel suite au rapport de mission mouche. Conduite dangereuse et comportement irrespectueux répétés confirmés par trois agents indépendants.',
             'sanctioned_at' => now()->subDays(15)->toDateString(),
         ]);
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // NOTIFICATIONS DE DÉMONSTRATION
+        // ═══════════════════════════════════════════════════════════════════════════
+
+        $notifManagerPending = Complaint::where('manager_user_id', $testManager->id)
+            ->where('step', ComplaintStep::ManagerReview)
+            ->with('bus')
+            ->first();
+
+        $notifClosed = Complaint::where('manager_user_id', $testManager->id)
+            ->where('com_user_id', $testCom->id)
+            ->where('step', ComplaintStep::Closed)
+            ->with('bus')
+            ->first();
+
+        $notifRhAvailable = Complaint::where('step', ComplaintStep::RHReview)
+            ->with(['bus', 'severity'])
+            ->first();
+
+        $notifRhAvailable2 = Complaint::where('step', ComplaintStep::RHReview)
+            ->where('id', '!=', $notifRhAvailable?->id ?? 0)
+            ->with('bus')
+            ->first();
+
+        $notifComHighSeverity = Complaint::whereHas('severity', fn ($q) => $q->where('level', '>=', 3))
+            ->where('step', ComplaintStep::ComReview)
+            ->with(['bus', 'severity'])
+            ->first();
+
+        $notifComHighSeverity2 = Complaint::whereHas('severity', fn ($q) => $q->where('level', 4))
+            ->where('step', ComplaintStep::ComReview)
+            ->with(['bus', 'severity'])
+            ->first();
+
+        $notifDriverClosed = Complaint::where('user_id', $testDriver->id)
+            ->where('step', ComplaintStep::Closed)
+            ->with('bus')
+            ->first();
+
+        $notifDriverSanction = Sanction::where('user_id', $testDriver->id)
+            ->whereNotNull('complaint_id')
+            ->first();
+
+        $notifDriverGratification = Gratification::where('user_id', $testDriver->id)->first();
+
+        // Manager (Sophie) : dossier assigné (non lu), transmis direct RH (non lu), clôturé (lu)
+        if ($notifManagerPending) {
+            $testManager->notify(new ComplaintAssignedToManagerNotification($notifManagerPending));
+        }
+        $managerTeamDriverIds = $testManager->chauffeurs()->pluck('users.id');
+        $notifDirectRH = Complaint::where('step', ComplaintStep::RHReview)
+            ->whereIn('user_id', $managerTeamDriverIds)
+            ->with(['bus', 'severity'])
+            ->first();
+        if ($notifDirectRH) {
+            $testManager->notify(new ComplaintSentDirectlyToRHNotification($notifDirectRH));
+        }
+        if ($notifClosed) {
+            $testManager->notify(new ComplaintClosedNotification($notifClosed));
+            $testManager->notifications()->latest()->first()?->markAsRead();
+        }
+
+        // Com (Marie) : niveau 3+ (non lu), niveau 4 (non lu), clôturé (lu)
+        if ($notifComHighSeverity) {
+            $testCom->notify(new HighSeverityComplaintNotification($notifComHighSeverity, $notifComHighSeverity->severity->level));
+        }
+        if ($notifComHighSeverity2) {
+            $testCom->notify(new HighSeverityComplaintNotification($notifComHighSeverity2, 4));
+        }
+        if ($notifClosed) {
+            $testCom->notify(new ComplaintClosedNotification($notifClosed));
+            $testCom->notifications()->latest()->first()?->markAsRead();
+        }
+
+        // RH (Claire) : nouveaux dossiers transmis (non lus)
+        if ($notifRhAvailable) {
+            $testRh->notify(new ComplaintSentToRHNotification($notifRhAvailable));
+        }
+        if ($notifRhAvailable2) {
+            $testRh->notify(new ComplaintSentToRHNotification($notifRhAvailable2));
+        }
+
+        // Chauffeur (Jean) : dossier traité (lu), sanction (non lue), gratification (lue)
+        if ($notifDriverClosed) {
+            $testDriver->notify(new DriverComplaintClosedNotification($notifDriverClosed));
+            $testDriver->notifications()->latest()->first()?->markAsRead();
+        }
+        if ($notifDriverSanction) {
+            $testDriver->notify(new SanctionNotification($notifDriverSanction));
+        }
+        if ($notifDriverGratification) {
+            $testDriver->notify(new GratificationNotification($notifDriverGratification));
+            $testDriver->notifications()->latest()->first()?->markAsRead();
+        }
     }
 }

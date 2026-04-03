@@ -8,6 +8,7 @@ use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MissionMoucheController;
 use App\Http\Controllers\MoucheDashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\QrCodeController;
@@ -57,6 +58,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'store'])->name('rapport.store');
 
     Route::get('/map-data', [MapController::class, 'data'])->name('map.data');
+
+    // Notifications
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
     Route::get('/manage-profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/manage-profile', [ProfileController::class, 'update'])->name('profile.update');
