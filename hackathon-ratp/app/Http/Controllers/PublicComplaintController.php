@@ -36,6 +36,7 @@ class PublicComplaintController extends Controller
         $incidentTime = $date.' '.$time;
         $previousDate = Carbon::parse($date)->subDay()->toDateString();
 
+        // Recherche exacte : planning correspondant à la ligne, l'arrêt et la plage horaire
         $planning = Planning::where('ligne_id', $validated['ligne_id'])
             ->when($validated['arret_fin_id'] ?? null, fn ($q, $id) => $q->where('arret_fin_id', $id))
             ->where(function ($q) use ($date, $previousDate, $time) {
@@ -65,6 +66,20 @@ class PublicComplaintController extends Controller
                     });
             })
             ->first();
+
+        // Fallback : n'importe quel planning sur cette ligne ce jour-là
+        if (! $planning) {
+            $planning = Planning::where('ligne_id', $validated['ligne_id'])
+                ->whereDate('date', $date)
+                ->first();
+        }
+
+        // Fallback final : le planning le plus récent sur cette ligne
+        if (! $planning) {
+            $planning = Planning::where('ligne_id', $validated['ligne_id'])
+                ->latest('date')
+                ->first();
+        }
 
         $client = Client::firstOrCreate(['email' => $validated['email']]);
 

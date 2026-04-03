@@ -42,16 +42,16 @@ class ComplaintController extends Controller
 
         $complaint = Complaint::where('id', $validated['idPlainte'])
             ->where('step', ComplaintStep::ComReview)
-            ->whereNull('com_user_id')
-            ->whereDoesntHave('severity')
             ->firstOrFail();
 
-        Severity::create([
-            'complaint_id' => $complaint->id,
-            'user_id' => null,
-            'level' => $validated['note'],
-            'justification' => $validated['justification'],
-        ]);
+        Severity::updateOrCreate(
+            ['complaint_id' => $complaint->id],
+            [
+                'user_id' => null,
+                'level' => $validated['note'],
+                'justification' => $validated['justification'],
+            ]
+        );
 
         if (array_key_exists('negative', $validated)) {
             $complaint->update(['negative' => $validated['negative']]);
