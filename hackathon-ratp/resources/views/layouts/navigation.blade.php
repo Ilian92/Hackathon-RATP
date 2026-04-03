@@ -3,7 +3,7 @@
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
-                    <a href="/">
+                    <a href="{{ Auth::check() ? route('profile') : '/' }}">
                         <img src="{{ asset('images/Image1 (1).png') }}" alt="RATP Réseaux de Surface" class="h-16 w-auto" />
                     </a>
                 </div>
