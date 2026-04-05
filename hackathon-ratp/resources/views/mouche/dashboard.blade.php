@@ -11,7 +11,6 @@
             </div>
         @endif
 
-        {{-- KPI --}}
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Missions en attente</p>
@@ -25,7 +24,6 @@
             </div>
         </div>
 
-        {{-- Missions en attente --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-semibold text-gray-800">Missions à traiter</h2>
@@ -54,7 +52,6 @@
             @endif
         </div>
 
-        {{-- Rapports soumis --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-semibold text-gray-800">Mes rapports soumis</h2>

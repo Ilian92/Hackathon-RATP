@@ -49,7 +49,6 @@
 
         @php $isMyDossier = $complaint->com_user_id === auth()->id(); @endphp
 
-        {{-- Prise en charge --}}
         @if ($complaint->step->value === 'ComReview' && $complaint->com_user_id === null)
             <div class="bg-white rounded-2xl shadow-sm border border-[#004fa3]/20 p-6 flex items-center justify-between gap-4">
                 <div>
@@ -70,7 +69,6 @@
             </div>
         @endif
 
-        {{-- Formulaire d'évaluation (uniquement si c'est mon dossier et pas encore transmis) --}}
         @if ($isMyDossier && $complaint->step->value === 'ComReview')
             @php
                 $currentLevel = $complaint->severity?->level;
@@ -84,7 +82,6 @@
 
                 <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Qualification du signalement</h2>
 
-                {{-- Toggle positif / négatif --}}
                 <div class="mb-6">
                     <p class="text-xs font-medium text-gray-600 mb-2">Nature du signalement</p>
                     <div class="flex gap-3">
@@ -111,7 +108,6 @@
                     @csrf
                     <input type="hidden" name="negative" :value="negative === null ? '' : (negative ? '1' : '0')">
 
-                    {{-- Labels dynamiques selon la nature --}}
                     <div class="mb-2">
                         <p class="text-xs font-medium text-gray-600">
                             <span x-show="negative === false">Intensité du signalement positif</span>

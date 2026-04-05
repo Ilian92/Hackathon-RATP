@@ -28,7 +28,6 @@
 
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-2">
 
-                {{-- Notification bell --}}
                 @php $unreadCount = Auth::user()->unreadNotifications()->count(); @endphp
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open" @click.outside="open = false"

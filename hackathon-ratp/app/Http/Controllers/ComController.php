@@ -173,7 +173,6 @@ class ComController extends Controller
                 ->with('success', 'Évaluation enregistrée — dossier annulé.');
         }
 
-        // Notifier les autres agents Com des dossiers niveau 3-4
         if ($level >= 3) {
             User::where('role', UserRole::Com)
                 ->where('id', '!=', $request->user()->id)
@@ -181,7 +180,6 @@ class ComController extends Controller
                 ->each(fn (User $com) => $com->notify(new HighSeverityComplaintNotification($complaint->load('bus'), $level)));
         }
 
-        // Signalement positif : transmis directement au RH
         if ($isNegative === false) {
             $complaint->update(['step' => ComplaintStep::RHReview]);
 
@@ -192,7 +190,6 @@ class ComController extends Controller
                 ->with('success', 'Signalement positif enregistré — dossier transmis au service RH.');
         }
 
-        // Signalement négatif, niveau 3-4 : transmis directement au RH
         if ($level >= 3) {
             $complaint->update(['step' => ComplaintStep::RHReview]);
 
@@ -203,7 +200,6 @@ class ComController extends Controller
                 ->with('success', 'Évaluation enregistrée — dossier transmis au service RH.');
         }
 
-        // Signalement négatif, niveau 1-2 : transmis au Manager
         $complaint->load('driver.managers.centreBuses');
         $activeManager = $complaint->driver?->managers->firstWhere('status', UserStatus::Actif);
 
@@ -220,7 +216,6 @@ class ComController extends Controller
         }
 
         if ($complaint->driver) {
-            // Manager inactif : valider et utiliser le manager de remplacement fourni
             $centreBusIds = $complaint->driver->managers->flatMap->centreBuses->pluck('id')->unique();
 
             $substituteManager = User::where('id', $request->integer('manager_id'))
@@ -244,7 +239,6 @@ class ComController extends Controller
                 ->with('success', 'Évaluation enregistrée — dossier transmis au manager de remplacement.');
         }
 
-        // Pas de chauffeur identifié : transmet sans manager assigné
         $complaint->update(['step' => ComplaintStep::ManagerReview]);
 
         return redirect()->route('complaints.show', $complaint)

@@ -12,13 +12,11 @@ class Bus extends Model
 {
     use HasFactory;
 
-    /** @return HasMany<Complaint, $this> */
     public function complaints(): HasMany
     {
         return $this->hasMany(Complaint::class);
     }
 
-    /** @return HasMany<Planning, $this> */
     public function plannings(): HasMany
     {
         return $this->hasMany(Planning::class);

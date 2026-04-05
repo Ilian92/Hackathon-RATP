@@ -25,19 +25,16 @@ class RapportMouche extends Model
         ];
     }
 
-    /** @return BelongsTo<MissionMouche, $this> */
     public function mission(): BelongsTo
     {
         return $this->belongsTo(MissionMouche::class, 'mission_mouche_id');
     }
 
-    /** @return BelongsTo<User, $this> */
     public function mouche(): BelongsTo
     {
         return $this->belongsTo(User::class, 'mouche_user_id');
     }
 
-    /** @return BelongsTo<Ligne, $this> */
     public function ligne(): BelongsTo
     {
         return $this->belongsTo(Ligne::class);

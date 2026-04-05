@@ -45,21 +45,18 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/drivers/{user}', [ManagerController::class, 'showDriver'])->name('drivers.show');
 
-    // Missions mouche (manager)
     Route::get('/missions', [MissionMoucheController::class, 'index'])->name('missions.index');
     Route::get('/missions/create', [MissionMoucheController::class, 'create'])->name('missions.create');
     Route::post('/missions', [MissionMoucheController::class, 'store'])->name('missions.store');
     Route::get('/missions/{mission}', [MissionMoucheController::class, 'show'])->name('missions.show');
     Route::patch('/missions/{mission}/decide', [MissionMoucheController::class, 'decide'])->name('missions.decide');
 
-    // Mouche dashboard & rapports
     Route::get('/mouche/dashboard', [MoucheDashboardController::class, 'index'])->name('mouche.dashboard');
     Route::get('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'create'])->name('rapport.create');
     Route::post('/mouche/missions/{mission}/rapport', [RapportMoucheController::class, 'store'])->name('rapport.store');
 
     Route::get('/map-data', [MapController::class, 'data'])->name('map.data');
 
-    // Notifications
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 

@@ -22,7 +22,6 @@
         <form method="POST" action="{{ route('rapport.store', $mission) }}" class="space-y-6">
             @csrf
 
-            {{-- Informations de base --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
                 <h2 class="text-sm font-semibold text-gray-800">Informations de l'observation</h2>
 
@@ -56,7 +55,6 @@
                 </div>
             </div>
 
-            {{-- Critères d'évaluation --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
                 <h2 class="text-sm font-semibold text-gray-800">Évaluation par critère</h2>
 
@@ -89,7 +87,6 @@
                     </div>
                 @endforeach
 
-                {{-- Gestion de conflit — optionnel --}}
                 <div>
                     <div class="flex items-start justify-between mb-2">
                         <div>
@@ -114,7 +111,6 @@
                 </div>
             </div>
 
-            {{-- Observation libre --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
                 <h2 class="text-sm font-semibold text-gray-800">Observation libre</h2>
                 <textarea name="observation" rows="5"

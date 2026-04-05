@@ -34,7 +34,6 @@ class ManagerController extends Controller
         $driverFilter = $request->integer('driver_id') ?: null;
         $nature = in_array($request->string('nature')->toString(), ['positive', 'negative']) ? $request->string('nature')->toString() : null;
 
-        // Visible si assignée à ce manager OU si le chauffeur fait partie de son équipe
         $visibilityScope = fn ($q) => $q->where('complaints.manager_user_id', $managerId)
             ->orWhereIn('complaints.user_id', $driverIds);
 

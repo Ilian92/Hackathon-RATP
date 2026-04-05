@@ -16,7 +16,6 @@
     </head>
     <body class="font-sans text-gray-900 antialiased bg-slate-100 min-h-screen">
 
-        {{-- Header RATP --}}
         <header class="bg-[#004fa3]">
             <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-center">
                 <a href="/">

@@ -21,7 +21,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-        {{-- KPI Cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">En attente</p>
@@ -56,14 +55,13 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Nature breakdown --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Nature des signalements traités</h2>
                 <p class="text-xs text-gray-400 mb-5">Tous les dossiers transmis (hors en cours)</p>
                 @if ($totalClassified === 0)
                     <p class="text-sm text-gray-400 text-center py-6">Aucune donnée</p>
                 @else
-                    {{-- Visual split bar --}}
+
                     @php $negPct = round($negativeCount / $totalClassified * 100); @endphp
                     <div class="flex rounded-full overflow-hidden h-4 mb-4">
                         <div class="bg-red-400 transition-all" style="width: {{ $negPct }}%"></div>
@@ -84,7 +82,6 @@
                 @endif
             </div>
 
-            {{-- Severity distribution --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Niveaux de gravité assignés</h2>
                 <p class="text-xs text-gray-400 mb-4">Dossiers traités par moi (hors en cours)</p>
@@ -109,7 +106,6 @@
                 @endif
             </div>
 
-            {{-- Top types --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Types de signalements</h2>
                 <p class="text-xs text-gray-400 mb-4">Top 5 des types traités par moi</p>
@@ -135,7 +131,6 @@
 
         </div>
 
-        {{-- Satisfaction client --}}
         @php $satAvg = $globalSatisfaction->total > 0 ? round($globalSatisfaction->avg / 2, 1) : null; @endphp
         <div class="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-5">
             <div class="flex flex-col sm:flex-row sm:items-center gap-6">
@@ -162,7 +157,6 @@
                     @endif
                 </div>
 
-                {{-- Trend bars --}}
                 <div class="sm:w-64 shrink-0">
                     <p class="text-xs text-amber-600 mb-2">Évolution mensuelle (sur 5)</p>
                     <div class="flex items-end gap-1.5 h-14">
@@ -184,10 +178,8 @@
             </div>
         </div>
 
-        {{-- Performance metrics --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Délai moyen d'attente en file --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Attente moyenne en file</h2>
                 <p class="text-xs text-gray-400 mb-4">Dossiers non réclamés (depuis création)</p>
@@ -195,7 +187,6 @@
                 <p class="mt-2 text-xs text-gray-500">délai moyen actuel</p>
             </div>
 
-            {{-- Dossiers bloqués --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Dossiers bloqués</h2>
                 <p class="text-xs text-gray-400 mb-4">Sans prise en charge depuis plus de 3 jours</p>
@@ -203,7 +194,6 @@
                 <p class="mt-2 text-xs text-gray-500">{{ $stalledCount === 0 ? 'Aucun dossier en souffrance' : 'dossier' . ($stalledCount > 1 ? 's' : '') . ' à prendre en charge' }}</p>
             </div>
 
-            {{-- Volume mensuel --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Volume mensuel entrant</h2>
                 <p class="text-xs text-gray-400 mb-4">Signalements reçus (6 derniers mois)</p>
@@ -221,7 +211,6 @@
 
         </div>
 
-        {{-- Carte interactive des lignes --}}
         <x-complaints-map />
 
     </div>

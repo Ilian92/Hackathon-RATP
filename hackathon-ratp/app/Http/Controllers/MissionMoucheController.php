@@ -35,7 +35,6 @@ class MissionMoucheController extends Controller
             ->orderBy('users.last_name')
             ->get(['users.id', 'users.first_name', 'users.last_name']);
 
-        // Prévisualisation : les 3 mouches qui seraient auto-sélectionnées
         $autoMouches = $this->selectMouches(3);
 
         return view('manager.missions.create', compact('drivers', 'autoMouches'));
@@ -63,11 +62,6 @@ class MissionMoucheController extends Controller
             ->with('success', 'Mission créée. '.$moucheIds->count().' mouche(s) assignée(s) automatiquement.');
     }
 
-    /**
-     * Sélectionne les $count mouches ayant le moins de missions actives (EnCours ou Completee).
-     *
-     * @return Collection<int, User>
-     */
     private function selectMouches(int $count): Collection
     {
         return User::where('role', UserRole::Mouche)

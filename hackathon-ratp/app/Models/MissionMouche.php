@@ -22,30 +22,22 @@ class MissionMouche extends Model
         ];
     }
 
-    /** @return BelongsTo<User, $this> */
     public function driver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'driver_user_id');
     }
 
-    /** @return BelongsTo<User, $this> */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_user_id');
     }
 
-    /**
-     * Les mouches assignées à cette mission.
-     *
-     * @return BelongsToMany<User, $this>
-     */
     public function mouches(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'mission_mouche_user')
             ->withPivot('submitted_at');
     }
 
-    /** @return HasMany<RapportMouche, $this> */
     public function rapports(): HasMany
     {
         return $this->hasMany(RapportMouche::class);

@@ -70,7 +70,7 @@
                 </div>
             @elseif ($complaint->rh_user_id === auth()->id())
                 @if ($complaint->negative === false)
-                    {{-- Signalement positif : gratification --}}
+
                     @if ($complaint->gratification === null)
                         <div class="bg-white rounded-2xl shadow-sm border border-emerald-200 p-6">
                             <h2 class="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-5">Récompenser le chauffeur</h2>
@@ -115,7 +115,7 @@
                         </div>
                     @endif
                 @else
-                    {{-- Signalement négatif : sanction --}}
+
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-5">Action disciplinaire</h2>
                         <form method="POST" action="{{ route('complaints.close', $complaint) }}">

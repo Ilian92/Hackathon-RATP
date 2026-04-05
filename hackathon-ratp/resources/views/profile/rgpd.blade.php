@@ -13,7 +13,6 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Intro --}}
             <div class="bg-[#004fa3] rounded-2xl p-6 text-white">
                 <div class="flex items-start gap-4">
                     <div class="shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -32,7 +31,6 @@
                 </div>
             </div>
 
-            {{-- Données collectées --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
@@ -69,10 +67,8 @@
                 </p>
             </div>
 
-            {{-- Actions RGPD --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                {{-- Export données --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div class="flex items-start gap-3 mb-4">
                         <div class="shrink-0 w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -105,7 +101,6 @@
                     </div>
                 </div>
 
-                {{-- Rectification --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div class="flex items-start gap-3 mb-4">
                         <div class="shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
@@ -129,7 +124,6 @@
                     </a>
                 </div>
 
-                {{-- Opposition au traitement --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div class="flex items-start gap-3 mb-4">
                         <div class="shrink-0 w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
@@ -154,7 +148,6 @@
                     </button>
                 </div>
 
-                {{-- Effacement --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div class="flex items-start gap-3 mb-4">
                         <div class="shrink-0 w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
@@ -181,7 +174,6 @@
 
             </div>
 
-            {{-- Politique de conservation --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -210,7 +202,6 @@
                 </div>
             </div>
 
-            {{-- Contact DPO --}}
             <div class="bg-gray-50 rounded-2xl border border-gray-100 p-5">
                 <div class="flex items-start gap-3">
                     <div class="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">

@@ -3,14 +3,14 @@
     x-init="init()"
     class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
 >
-    {{-- Header & Filters --}}
+
     <div class="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h2 class="text-sm font-semibold text-gray-800">Carte des lignes — Densité de plaintes</h2>
             <p class="text-xs text-gray-400 mt-0.5">Vert = peu de plaintes · Rouge = beaucoup de plaintes</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            {{-- Period --}}
+
             <select
                 x-model="filters.period"
                 @change="fetchData()"
@@ -22,7 +22,6 @@
                 <option value="7d">7 derniers jours</option>
             </select>
 
-            {{-- Nature --}}
             <select
                 x-model="filters.nature"
                 @change="fetchData()"
@@ -33,7 +32,6 @@
                 <option value="positive">Positifs seulement</option>
             </select>
 
-            {{-- Severity --}}
             <select
                 x-model="filters.severity"
                 @change="fetchData()"
@@ -47,7 +45,6 @@
                 <option value="4">Niveau 4 — Très grave</option>
             </select>
 
-            {{-- Reset --}}
             <button
                 @click="resetFilters()"
                 class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:border-gray-300 transition"
@@ -57,7 +54,6 @@
         </div>
     </div>
 
-    {{-- Loading overlay --}}
     <div x-show="loading" class="relative">
         <div class="absolute inset-0 bg-white/70 z-[1000] flex items-center justify-center" style="height: 640px;">
             <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -70,10 +66,8 @@
         </div>
     </div>
 
-    {{-- Map container --}}
     <div id="complaints-map" style="height: 640px; z-index: 0;"></div>
 
-    {{-- Legend --}}
     <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <span class="text-xs text-gray-500">Peu de plaintes</span>

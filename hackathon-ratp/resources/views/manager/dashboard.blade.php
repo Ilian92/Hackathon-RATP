@@ -18,7 +18,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-        {{-- KPI Cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">En attente</p>
@@ -42,7 +41,6 @@
             </div>
         </div>
 
-        {{-- Satisfaction client --}}
         @php $satAvg = $teamSatisfaction->total > 0 ? round($teamSatisfaction->avg / 2, 1) : null; @endphp
         <div class="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-5">
             <div class="flex flex-col sm:flex-row sm:items-center gap-6">
@@ -69,7 +67,6 @@
                     @endif
                 </div>
 
-                {{-- Trend bars --}}
                 <div class="sm:w-64 shrink-0">
                     <p class="text-xs text-amber-600 mb-2">Évolution mensuelle (sur 5)</p>
                     <div class="flex items-end gap-1.5 h-14">
@@ -109,7 +106,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Répartition par étape --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Répartition par étape</h2>
                 <p class="text-xs text-gray-400 mb-4">{{ $totalVisible }} dossiers au total dans mon périmètre</p>
@@ -143,7 +139,6 @@
                 @endif
             </div>
 
-            {{-- Nature des signalements --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Nature des signalements</h2>
                 <p class="text-xs text-gray-400 mb-4">Tous les dossiers de mon périmètre</p>
@@ -177,7 +172,6 @@
                 @endif
             </div>
 
-            {{-- Distribution de gravité --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Distribution de gravité</h2>
                 <p class="text-xs text-gray-400 mb-4">Tous les dossiers avec niveau assigné</p>
@@ -203,10 +197,8 @@
             </div>
         </div>
 
-        {{-- Performance metrics --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Délai moyen de résolution --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Délai moyen de résolution</h2>
                 <p class="text-xs text-gray-400 mb-4">Incident → clôture (mes dossiers)</p>
@@ -218,7 +210,6 @@
                 @endif
             </div>
 
-            {{-- Ancienneté des dossiers en attente --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Ancienneté des dossiers en attente</h2>
                 <p class="text-xs text-gray-400 mb-4">Dossiers en attente de décision manager</p>
@@ -251,7 +242,6 @@
 
         </div>
 
-        {{-- Volume mensuel --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 class="text-sm font-semibold text-gray-800 mb-1">Volume mensuel de signalements</h2>
             <p class="text-xs text-gray-400 mb-5">Dossiers de mon périmètre sur les 6 derniers mois</p>
@@ -268,10 +258,8 @@
             </div>
         </div>
 
-        {{-- Carte interactive des lignes --}}
         <x-complaints-map />
 
-        {{-- Team stats --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-semibold text-gray-800">Performance de l'équipe</h2>

@@ -39,7 +39,6 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /** @var list<string> */
     private array $aiNegativeJustifications = [
         "L'usager décrit un comportement déplacé de la part du chauffeur. Incident isolé sans contexte aggravant apparent.",
         'Signalement de non-respect du code de la route en zone urbaine. Vérification avec les caméras embarquées recommandée.',
@@ -63,7 +62,6 @@ class DatabaseSeeder extends Seeder
         "Le chauffeur aurait quitté son poste sans raison apparente pendant l'arrêt, retardant le départ.",
     ];
 
-    /** @var list<string> */
     private array $aiPositiveJustifications = [
         "Aide spontanée à une personne en situation de handicap pour monter dans le bus. Comportement exemplaire salué par d'autres passagers.",
         'Ponctualité remarquable maintenue malgré des perturbations de circulation importantes. Plusieurs usagers ont tenu à le signaler.',
@@ -77,11 +75,9 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // ─── Centres de bus ───────────────────────────────────────────────────────
         $centreLagny = CentreBus::factory()->create(['name' => 'Dépôt de Lagny',  'address' => '1 Rue du Dépôt, Lagny-sur-Marne']);
         $centreThiais = CentreBus::factory()->create(['name' => 'Dépôt de Thiais', 'address' => '45 Avenue du Maréchal Joffre, Thiais']);
 
-        // ─── Utilisateurs ─────────────────────────────────────────────────────────
         $managers = User::factory(2)->role(UserRole::Manager)->create();
         $drivers = User::factory(5)->chauffeur()->create();
         $coms = User::factory(2)->role(UserRole::Com)->create();
@@ -120,7 +116,6 @@ class DatabaseSeeder extends Seeder
             'status' => UserStatus::Actif,
         ]);
 
-        // ─── Liaisons centres / managers ──────────────────────────────────────────
         $centreLagny->users()->attach($testManager->id);
         $centreLagny->users()->attach($testManagerGeneric->id);
         $centreLagny->users()->attach($managers->first()->id);
@@ -138,7 +133,6 @@ class DatabaseSeeder extends Seeder
             $centreLagny->users()->attach($avocat->id);
         }
 
-        // ─── Équipes chauffeurs ────────────────────────────────────────────────────
         $teamDrivers = User::factory(3)->chauffeur()->create();
         foreach ($teamDrivers as $driver) {
             $driver->managers()->attach($testManager->id);
@@ -148,23 +142,19 @@ class DatabaseSeeder extends Seeder
             $driver->managers()->attach($managers->random()->id);
         }
 
-        // Gratifications et sanctions historiques (sans lien à une plainte)
         foreach ($drivers as $driver) {
             Gratification::factory(fake()->numberBetween(0, 2))->create(['user_id' => $driver->id]);
             Sanction::factory(fake()->numberBetween(0, 2))->create(['user_id' => $driver->id]);
         }
 
-        // ─── Types de plaintes ────────────────────────────────────────────────────
         $complaintTypes = ComplaintType::factory(8)->create();
 
-        // ─── Bus ──────────────────────────────────────────────────────────────────
         $buses = collect([
             'AB-001-CD', 'EF-002-GH', 'IJ-003-KL', 'MN-004-OP',
             'QR-005-ST', 'UV-006-WX', 'YZ-007-AB', 'CD-008-EF',
             'GH-009-IJ', 'KL-010-MN',
         ])->map(fn (string $code) => Bus::firstOrCreate(['code' => $code]));
 
-        // ─── Lignes ───────────────────────────────────────────────────────────────
         $arrets = Arret::factory(40)->create();
 
         $lignesLagny = collect();
@@ -189,7 +179,6 @@ class DatabaseSeeder extends Seeder
 
         $toutesLesLignes = $lignesLagny->merge($lignesThiais);
 
-        // ─── Plannings (90 jours) ─────────────────────────────────────────────────
         $allDrivers = $drivers->merge(collect([$testDriver]));
         $period = Carbon::today()->subDays(90);
         while ($period->lte(Carbon::today())) {
@@ -210,11 +199,8 @@ class DatabaseSeeder extends Seeder
             $period->addDay();
         }
 
-        // ─── Clients ──────────────────────────────────────────────────────────────
         $clients = Client::factory(30)->create();
 
-        // ─── Plaintes aléatoires avec pré-analyse IA ──────────────────────────────
-        // 32 plaintes négatives (niveaux variés, tous en attente ComReview)
         $negativeComplaints = Complaint::factory(32)
             ->recycle($buses)
             ->recycle($complaintTypes)
@@ -231,7 +217,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 10 plaintes positives (signalements positifs, tous en attente ComReview)
         $positiveComplaints = Complaint::factory(10)
             ->recycle($buses)
             ->recycle($complaintTypes)
@@ -248,7 +233,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 8 plaintes pré-analysées par l'IA (mix négatif/positif, sans lien utilisateur)
         $mixedComplaints = [
             ['negative' => true,  'level' => 2, 'justification' => 'Comportement irrespectueux signalé par un usager. Incident isolé sans antécédent identifié sur les 12 derniers mois.'],
             ['negative' => true,  'level' => 3, 'justification' => "Refus de prise en charge à l'arrêt signalé. Deuxième occurrence similaire détectée, aggravation du niveau."],
@@ -279,15 +263,10 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ─── Avis de satisfaction ─────────────────────────────────────────────────
         Satisfaction::factory(50)->recycle($clients)->recycle($drivers)->create();
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES COMPLÈTES POUR LE CHAUFFEUR DE TEST (chauffeur.test@ratp.fr)
-        // ═══════════════════════════════════════════════════════════════════════════
         $testBus = $buses->first();
 
-        // 4 plaintes négatives à divers stades
         $c1 = Complaint::factory()->create([
             'user_id' => $testDriver->id,
             'bus_id' => $testBus->id,
@@ -372,7 +351,6 @@ class DatabaseSeeder extends Seeder
             'justification' => "Après vérification, l'incident est dû à un malentendu. Dossier classé sans suite.",
         ]);
 
-        // 1 signalement positif clôturé avec gratification pour le chauffeur de test
         $cPos = Complaint::factory()->create([
             'user_id' => $testDriver->id,
             'bus_id' => $testBus->id,
@@ -400,7 +378,6 @@ class DatabaseSeeder extends Seeder
             'awarded_at' => now()->subDays(25)->toDateString(),
         ]);
 
-        // Gratifications historiques (non liées à une plainte)
         Gratification::create([
             'user_id' => $testDriver->id,
             'amount' => 200,
@@ -414,7 +391,6 @@ class DatabaseSeeder extends Seeder
             'awarded_at' => now()->subMonths(8)->toDateString(),
         ]);
 
-        // Sanction historique (non liée à une plainte)
         Sanction::create([
             'user_id' => $testDriver->id,
             'type' => 'Avertissement',
@@ -422,14 +398,9 @@ class DatabaseSeeder extends Seeder
             'sanctioned_at' => now()->subMonths(6)->toDateString(),
         ]);
 
-        // Avis de satisfaction
         Satisfaction::factory(12)->create(['user_id' => $testDriver->id, 'note' => fake()->numberBetween(6, 10)]);
         Satisfaction::factory(3)->create(['user_id' => $testDriver->id, 'note' => fake()->numberBetween(0, 5)]);
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES POUR LE COMPTE COM DE TEST (com.test@ratp.fr)
-        // ═══════════════════════════════════════════════════════════════════════════
-        // 5 dossiers pré-analysés par l'IA, disponibles (non réclamés)
         $availableForCom = [
             ['negative' => true,  'level' => 1, 'justification' => 'Incident isolé, premier signalement de ce type pour ce chauffeur. Aucun antécédent similaire constaté sur les 12 derniers mois.'],
             ['negative' => true,  'level' => 3, 'justification' => "Comportement signalé lors d'un contrôle de titre. Troisième signalement similaire en 6 mois identifié dans les données."],
@@ -456,7 +427,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 3 dossiers pris en charge par Marie Laurent (ComReview, com_user_id set)
         $mineForCom = [
             ['negative' => true,  'level' => 2, 'justification' => 'Refus de priorité signalé. Incident filmé par la caméra intérieure. Niveau modéré, aucun antécédent constaté.'],
             ['negative' => true,  'level' => 4, 'justification' => 'Mise en danger avérée de passagers vulnérables. Infraction au code de la route confirmée par le GPS embarqué.'],
@@ -481,11 +451,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES POUR LE COMPTE RH DE TEST (rh.test@ratp.fr)
-        // ═══════════════════════════════════════════════════════════════════════════
         $rhComplaintsData = [
-            // Disponibles (non réclamées) — négatives
             [
                 'negative' => true,
                 'step' => ComplaintStep::RHReview,
@@ -513,7 +479,6 @@ class DatabaseSeeder extends Seeder
                 'description' => "Refus délibéré de prise en charge d'un passager en fauteuil roulant, comportement discriminatoire avéré.",
                 'severity' => ['level' => 4, 'justification' => "Refus délibéré de prise en charge d'un passager en fauteuil roulant, comportement discriminatoire avéré."],
             ],
-            // Disponible — positive
             [
                 'negative' => false,
                 'step' => ComplaintStep::RHReview,
@@ -523,7 +488,6 @@ class DatabaseSeeder extends Seeder
                 'description' => "Le chauffeur a gardé son calme et géré seul une situation d'urgence médicale à bord, attendant les secours et rassurant les passagers.",
                 'severity' => ['level' => 4, 'justification' => "Gestion exemplaire d'une urgence médicale à bord. Comportement professionnel et humain unanimement salué par les témoins présents."],
             ],
-            // Prises en charge par Claire Moreau — négatives
             [
                 'negative' => true,
                 'step' => ComplaintStep::RHReview,
@@ -542,7 +506,6 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Accident causé par excès de vitesse, blessé léger parmi les passagers.',
                 'severity' => ['level' => 4, 'justification' => 'Accident causé par excès de vitesse, blessé léger parmi les passagers. Rapport de police joint au dossier.'],
             ],
-            // Prise en charge par Claire Moreau — positive
             [
                 'negative' => false,
                 'step' => ComplaintStep::RHReview,
@@ -552,7 +515,6 @@ class DatabaseSeeder extends Seeder
                 'description' => "Comportement exceptionnel lors d'une panne en pleine nuit : le chauffeur a attendu avec les passagers et organisé leur prise en charge.",
                 'severity' => ['level' => 3, 'justification' => "Initiative remarquable lors d'une panne nocturne. Le chauffeur est resté avec les passagers et a coordonné les secours. Niveau 3 positif."],
             ],
-            // Clôturées par Claire Moreau — négatives avec sanction
             [
                 'negative' => true,
                 'step' => ComplaintStep::Closed,
@@ -573,7 +535,6 @@ class DatabaseSeeder extends Seeder
                 'severity' => ['level' => 4, 'justification' => 'Falsification de feuille de route confirmée par les relevés GPS. Faute grave caractérisée.'],
                 'sanction' => ['type' => 'Blâme', 'description' => 'Blâme officiel pour falsification de feuille de route. Dossier transmis à la direction.'],
             ],
-            // Clôturée par Claire Moreau — positive avec gratification
             [
                 'negative' => false,
                 'step' => ComplaintStep::Closed,
@@ -630,11 +591,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES POUR LE COMPTE MANAGER DE TEST (manager.test@ratp.fr)
-        // ═══════════════════════════════════════════════════════════════════════════
         $managerComplaintsData = [
-            // En attente de décision (ManagerReview) — négatifs
             [
                 'driver' => $testDriver,
                 'negative' => true,
@@ -671,7 +628,6 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Départ anticipé de 3 minutes, laissant un passager sur le quai.',
                 'severity' => ['level' => 1, 'justification' => 'Départ anticipé de 3 minutes, laissant un passager sur le quai. Erreur isolée sans antécédent.'],
             ],
-            // Transmis au RH — négatifs graves
             [
                 'driver' => $testDriver,
                 'negative' => true,
@@ -690,7 +646,6 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Insultes à caractère discriminatoire envers un usager, confirmées par enregistrement sonore embarqué.',
                 'severity' => ['level' => 4, 'justification' => 'Insultes à caractère discriminatoire envers un usager, confirmées par enregistrement sonore embarqué.'],
             ],
-            // Transmis au RH — positif (le manager voit en lecture seule)
             [
                 'driver' => $teamDrivers[1],
                 'negative' => false,
@@ -700,7 +655,6 @@ class DatabaseSeeder extends Seeder
                 'description' => "Le chauffeur a signalé et sécurisé un passager inconscient dans son bus avant l'arrivée des secours.",
                 'severity' => ['level' => 4, 'justification' => 'Initiative remarquable et courage face à une urgence médicale. Comportement exemplaire méritant une gratification selon le Com.'],
             ],
-            // Clôturés par le manager
             [
                 'driver' => $teamDrivers[1],
                 'negative' => true,
@@ -744,7 +698,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ─── Dossiers redirigés vers testManagerGeneric (Sophie absente) ──────────
         $redirectedComplaintsData = [
             [
                 'driver' => $teamDrivers[0],
@@ -807,7 +760,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ─── Cas manager inactif (pour tester le remplacement) ────────────────────
         $inactiveManager = User::factory()->role(UserRole::Manager)->create([
             'first_name' => 'Thomas',
             'last_name' => 'Blanc',
@@ -846,22 +798,13 @@ class DatabaseSeeder extends Seeder
             'justification' => "Incident confirmé par trois témoins. Le chauffeur a refusé d'attendre qu'une passagère âgée soit assise avant de redémarrer. Aucun antécédent similaire dans les 12 derniers mois.",
         ]);
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES SUPPLÉMENTAIRES POUR LES DASHBOARDS
-        // ═══════════════════════════════════════════════════════════════════════════
-
-        // ─── Complète l'historique des chauffeurs de l'équipe de Sophie ───────────
         $teamHistory = [
-            // testDriver — plusieurs signalements négatifs anciens (clôturés)
             ['driver' => $testDriver, 'negative' => true, 'level' => 2, 'daysAgo' => 55, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => ['type' => 'Avertissement', 'description' => 'Conduite brusque signalée par plusieurs passagers. Entretien effectué.', 'daysAgo' => 50]],
             ['driver' => $testDriver, 'negative' => true, 'level' => 1, 'daysAgo' => 80, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
-            // teamDrivers[0] — historique varié
             ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 3, 'daysAgo' => 40, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => ['type' => 'Mise à pied', 'description' => "Mise à pied d'un jour pour comportement discriminatoire envers un usager.", 'daysAgo' => 36]],
             ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 1, 'daysAgo' => 75, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
             ['driver' => $teamDrivers[0], 'negative' => false, 'level' => 3, 'daysAgo' => 60, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => null, 'gratification' => ['amount' => 80, 'reason' => "Aide spontanée à une famille avec poussette lors d'une avarie d'ascenseur.", 'daysAgo' => 55]],
-            // teamDrivers[1] — peu de signalements
             ['driver' => $teamDrivers[1], 'negative' => true, 'level' => 2, 'daysAgo' => 65, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Clos, 'sanction' => null],
-            // teamDrivers[2] — historique propre, un positif
             ['driver' => $teamDrivers[2], 'negative' => false, 'level' => 4, 'daysAgo' => 45, 'step' => ComplaintStep::Closed, 'status' => ComplaintStatus::Abouti, 'sanction' => null, 'gratification' => ['amount' => 200, 'reason' => "Comportement exemplaire lors d'une urgence médicale à bord. Gestes de premiers secours prodigués.", 'daysAgo' => 40]],
         ];
 
@@ -904,7 +847,6 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ─── Dossiers traités ce mois par Marie Laurent (Com) ─────────────────────
         $comTreatedThisMonth = [
             ['negative' => true, 'level' => 1, 'nextStep' => ComplaintStep::ManagerReview],
             ['negative' => true, 'level' => 2, 'nextStep' => ComplaintStep::ManagerReview],
@@ -943,7 +885,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // ─── Dossiers clôturés ce mois par Claire Moreau (RH) ─────────────────────
         $rhClosedThisMonth = [
             ['negative' => true, 'level' => 3, 'sanction' => ['type' => 'Avertissement', 'description' => 'Comportement agressif répété. Avertissement formel notifié.']],
             ['negative' => true, 'level' => 4, 'sanction' => ['type' => 'Mise à pied', 'description' => 'Mise à pied de 5 jours pour infraction grave au code de la route.']],
@@ -997,7 +938,6 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ─── Dossiers clôturés ce mois par Sophie Lefèvre (Manager) ───────────────
         $managerClosedThisMonth = [
             ['driver' => $testDriver, 'negative' => true, 'level' => 1, 'status' => ComplaintStatus::Clos],
             ['driver' => $teamDrivers[0], 'negative' => true, 'level' => 0, 'status' => ComplaintStatus::Clos],
@@ -1037,17 +977,11 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ─── Avis de satisfaction supplémentaires ─────────────────────────────────
         $allTeamDrivers = collect([$testDriver])->merge($teamDrivers);
         foreach ($allTeamDrivers as $driver) {
             Satisfaction::factory(fake()->numberBetween(8, 20))->create(['user_id' => $driver->id]);
         }
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // DONNÉES MOUCHE
-        // ═══════════════════════════════════════════════════════════════════════════
-
-        // ─── Agents mouche ────────────────────────────────────────────────────────
         $testMouche = User::factory()->role(UserRole::Mouche)->create([
             'first_name' => 'Isabelle',
             'last_name' => 'Dumont',
@@ -1070,8 +1004,6 @@ class DatabaseSeeder extends Seeder
 
         $ligne1 = $toutesLesLignes->first();
 
-        // ─── Mission 1 : En cours, 1 rapport sur 3 soumis ─────────────────────────
-        // testMouche et mouche3 n'ont pas encore soumis → testMouche peut remplir son rapport
         $mission1 = MissionMouche::create([
             'driver_user_id' => $testDriver->id,
             'manager_user_id' => $testManager->id,
@@ -1098,8 +1030,6 @@ class DatabaseSeeder extends Seeder
             'observation' => "Le chauffeur était distrait à plusieurs reprises. J'ai observé deux freinages brusques non justifiés. Tenue correcte mais attitude peu accueillante envers les passagers.",
         ]);
 
-        // ─── Mission 2 : Complétée, en attente de décision manager ────────────────
-        // Tous les rapports sont reçus → Sophie doit décider
         $mission2 = MissionMouche::create([
             'driver_user_id' => $teamDrivers[0]->id,
             'manager_user_id' => $testManager->id,
@@ -1152,7 +1082,6 @@ class DatabaseSeeder extends Seeder
             'observation' => "J'ai observé une altercation avec un passager lors du contrôle d'un titre de transport. Le chauffeur a haussé la voix de façon disproportionnée. Tenue négligée.",
         ]);
 
-        // ─── Mission 3 : Décidée — classé sans suite ──────────────────────────────
         $mission3 = MissionMouche::create([
             'driver_user_id' => $teamDrivers[1]->id,
             'manager_user_id' => $testManager->id,
@@ -1194,7 +1123,6 @@ class DatabaseSeeder extends Seeder
             'observation' => 'Bon professionnalisme général. Le chauffeur a aidé une personne âgée à trouver sa place. Aucun manquement observé lors de mon trajet.',
         ]);
 
-        // ─── Mission 4 : Décidée — sanction appliquée ─────────────────────────────
         $mission4 = MissionMouche::create([
             'driver_user_id' => $teamDrivers[2]->id,
             'manager_user_id' => $testManager->id,
@@ -1257,10 +1185,6 @@ class DatabaseSeeder extends Seeder
             'sanctioned_at' => now()->subDays(15)->toDateString(),
         ]);
 
-        // ═══════════════════════════════════════════════════════════════════════════
-        // NOTIFICATIONS DE DÉMONSTRATION
-        // ═══════════════════════════════════════════════════════════════════════════
-
         $notifManagerPending = Complaint::where('manager_user_id', $testManager->id)
             ->where('step', ComplaintStep::ManagerReview)
             ->with('bus')
@@ -1302,7 +1226,6 @@ class DatabaseSeeder extends Seeder
 
         $notifDriverGratification = Gratification::where('user_id', $testDriver->id)->first();
 
-        // Manager (Sophie) : dossier assigné (non lu), transmis direct RH (non lu), clôturé (lu)
         if ($notifManagerPending) {
             $testManager->notify(new ComplaintAssignedToManagerNotification($notifManagerPending));
         }
@@ -1319,7 +1242,6 @@ class DatabaseSeeder extends Seeder
             $testManager->notifications()->latest()->first()?->markAsRead();
         }
 
-        // Com (Marie) : niveau 3+ (non lu), niveau 4 (non lu), clôturé (lu)
         if ($notifComHighSeverity) {
             $testCom->notify(new HighSeverityComplaintNotification($notifComHighSeverity, $notifComHighSeverity->severity->level));
         }
@@ -1331,7 +1253,6 @@ class DatabaseSeeder extends Seeder
             $testCom->notifications()->latest()->first()?->markAsRead();
         }
 
-        // RH (Claire) : nouveaux dossiers transmis (non lus)
         if ($notifRhAvailable) {
             $testRh->notify(new ComplaintSentToRHNotification($notifRhAvailable));
         }
@@ -1339,7 +1260,6 @@ class DatabaseSeeder extends Seeder
             $testRh->notify(new ComplaintSentToRHNotification($notifRhAvailable2));
         }
 
-        // Chauffeur (Jean) : dossier traité (lu), sanction (non lue), gratification (lue)
         if ($notifDriverClosed) {
             $testDriver->notify(new DriverComplaintClosedNotification($notifDriverClosed));
             $testDriver->notifications()->latest()->first()?->markAsRead();

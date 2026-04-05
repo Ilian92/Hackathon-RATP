@@ -17,7 +17,6 @@
     ];
 @endphp
 
-{{-- Fil d'avancement --}}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
     <p class="text-xs text-gray-400 uppercase tracking-wide mb-4">Avancement du dossier</p>
     <div class="flex items-center gap-0">
@@ -53,7 +52,6 @@
     </div>
 </div>
 
-{{-- Détails --}}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
     <p class="text-xs text-gray-400 uppercase tracking-wide">Détails de la plainte</p>
 
@@ -106,7 +104,6 @@
     </div>
 </div>
 
-{{-- Gratification --}}
 @if ($complaint->gratification)
     <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-6">
         <div class="flex items-center gap-3 mb-3">
@@ -125,7 +122,6 @@
     </div>
 @endif
 
-{{-- Évaluation Com --}}
 @if ($complaint->severity)
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center justify-between mb-3">

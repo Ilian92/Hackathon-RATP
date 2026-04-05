@@ -12,7 +12,6 @@ class ComplaintType extends Model
 {
     use HasFactory;
 
-    /** @return HasMany<Complaint, $this> */
     public function complaints(): HasMany
     {
         return $this->hasMany(Complaint::class);

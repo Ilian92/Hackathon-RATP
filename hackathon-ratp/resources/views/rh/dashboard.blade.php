@@ -18,7 +18,6 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-        {{-- KPI Cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">En attente</p>
@@ -51,7 +50,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Positif / Négatif global --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Nature des dossiers clôturés</h2>
                 <p class="text-xs text-gray-400 mb-5">Tous les dossiers clôturés (tous agents RH)</p>
@@ -78,7 +76,6 @@
                 @endif
             </div>
 
-            {{-- Severity distribution (mes dossiers clôturés) --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Gravité des dossiers clôturés</h2>
                 <p class="text-xs text-gray-400 mb-4">Mes dossiers clôturés</p>
@@ -103,7 +100,6 @@
                 @endif
             </div>
 
-            {{-- Sanction type breakdown --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Types de sanctions prononcées</h2>
                 <p class="text-xs text-gray-400 mb-4">Toutes sanctions (tous agents RH)</p>
@@ -129,7 +125,6 @@
 
         </div>
 
-        {{-- Satisfaction client --}}
         @php $satAvg = $globalSatisfaction->total > 0 ? round($globalSatisfaction->avg / 2, 1) : null; @endphp
         <div class="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100 rounded-2xl p-5">
             <div class="flex flex-col sm:flex-row sm:items-center gap-6">
@@ -156,7 +151,6 @@
                     @endif
                 </div>
 
-                {{-- Trend bars --}}
                 <div class="sm:w-64 shrink-0">
                     <p class="text-xs text-amber-600 mb-2">Évolution mensuelle (sur 5)</p>
                     <div class="flex items-end gap-1.5 h-14">
@@ -178,10 +172,8 @@
             </div>
         </div>
 
-        {{-- Performance metrics --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {{-- Délai moyen de résolution --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Délai moyen de résolution</h2>
                 <p class="text-xs text-gray-400 mb-4">Incident → clôture (mes dossiers RH)</p>
@@ -193,7 +185,6 @@
                 @endif
             </div>
 
-            {{-- Taux de dossiers aboutis --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Taux d'aboutissement</h2>
                 <p class="text-xs text-gray-400 mb-4">Dossiers clôturés avec action (tous agents RH)</p>
@@ -205,7 +196,6 @@
                 @endif
             </div>
 
-            {{-- Volume mensuel --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-1">Volume mensuel</h2>
                 <p class="text-xs text-gray-400 mb-3">Reçus vs clôturés (6 derniers mois)</p>
@@ -231,7 +221,6 @@
 
         </div>
 
-        {{-- Recent sanctions & gratifications --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -312,7 +301,6 @@
 
         </div>
 
-        {{-- Carte interactive des lignes --}}
         <x-complaints-map />
 
     </div>

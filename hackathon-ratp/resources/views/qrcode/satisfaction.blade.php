@@ -33,7 +33,6 @@
             @csrf
             <input type="hidden" name="note" :value="rating">
 
-            {{-- Email --}}
             <div class="mb-5">
                 <x-input-label for="email" value="Votre adresse email" />
                 <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required autofocus />
@@ -43,7 +42,6 @@
                 </p>
             </div>
 
-            {{-- Star rating --}}
             <div class="mb-5">
                 <x-input-label value="Note" />
                 <div class="mt-3 flex justify-center gap-1">
@@ -75,7 +73,6 @@
                 <x-input-error :messages="$errors->get('note')" class="mt-2" />
             </div>
 
-            {{-- Description --}}
             <div class="mb-6">
                 <x-input-label for="description" value="Commentaire (optionnel)" />
                 <textarea id="description" name="description" rows="3"

@@ -90,18 +90,15 @@ class DashboardController extends Controller
             ->orderBy('users.last_name')
             ->get(['users.id', 'users.first_name', 'users.last_name']);
 
-        // Délai moyen de résolution (incident → clôture) pour les dossiers de l'équipe
         $avgDaysToClose = Complaint::where('manager_user_id', $user->id)
             ->where('step', ComplaintStep::Closed)
             ->selectRaw('ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - incident_time)) / 86400)::numeric, 1) as avg_days')
             ->value('avg_days');
 
-        // Note de satisfaction moyenne des chauffeurs de l'équipe
         $teamSatisfaction = Satisfaction::whereIn('user_id', $driverIds)
             ->selectRaw('ROUND(AVG(note)::numeric, 1) as avg, COUNT(*) as total')
             ->first();
 
-        // Ancienneté des dossiers en attente de décision manager
         $agingPending = Complaint::where('manager_user_id', $user->id)
             ->where('step', ComplaintStep::ManagerReview)
             ->selectRaw("
@@ -112,7 +109,6 @@ class DashboardController extends Controller
             ")
             ->first();
 
-        // Volume mensuel des 6 derniers mois (plaintes de mon périmètre)
         $monthlyVolume = collect(range(5, 0))->map(function ($monthsAgo) use ($user) {
             $date = now()->subMonths($monthsAgo);
 
@@ -203,19 +199,16 @@ class DashboardController extends Controller
             ->limit(5)
             ->pluck('count', 'name');
 
-        // Délai moyen d'attente en file non réclamée (jours depuis création)
         $avgWaitInQueue = Complaint::where('step', ComplaintStep::ComReview)
             ->whereNull('com_user_id')
             ->selectRaw('ROUND(AVG(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400)::numeric, 1) as avg_wait')
             ->value('avg_wait') ?? 0;
 
-        // Dossiers bloqués dans la file depuis plus de 3 jours (sans prise en charge)
         $stalledCount = Complaint::where('step', ComplaintStep::ComReview)
             ->whereNull('com_user_id')
             ->where('created_at', '<', now()->subDays(3))
             ->count();
 
-        // Note de satisfaction globale de tous les chauffeurs
         $globalSatisfaction = Satisfaction::selectRaw('ROUND(AVG(note)::numeric, 1) as avg, COUNT(*) as total')
             ->first();
 
@@ -231,7 +224,6 @@ class DashboardController extends Controller
             ];
         })->values();
 
-        // Volume de plaintes reçues par mois (6 derniers mois)
         $monthlyVolume = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
 
@@ -305,13 +297,11 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Délai moyen de résolution (incident → clôture) pour mes dossiers RH
         $avgDaysToClose = Complaint::where('rh_user_id', $user->id)
             ->where('step', ComplaintStep::Closed)
             ->selectRaw('ROUND(AVG(EXTRACT(EPOCH FROM (updated_at - incident_time)) / 86400)::numeric, 1) as avg_days')
             ->value('avg_days');
 
-        // Note de satisfaction globale de tous les chauffeurs
         $globalSatisfaction = Satisfaction::selectRaw('ROUND(AVG(note)::numeric, 1) as avg, COUNT(*) as total')
             ->first();
 
@@ -327,14 +317,12 @@ class DashboardController extends Controller
             ];
         })->values();
 
-        // Taux de dossiers clôturés avec action (abouti) vs sans suite
         $allClosedCount = Complaint::where('step', ComplaintStep::Closed)->count();
         $aboutiCount = Complaint::where('step', ComplaintStep::Closed)
             ->where('status', ComplaintStatus::Abouti)
             ->count();
         $aboutiRate = $allClosedCount > 0 ? round($aboutiCount / $allClosedCount * 100) : null;
 
-        // Volume mensuel de plaintes reçues (6 derniers mois, global)
         $monthlyVolume = collect(range(5, 0))->map(function ($monthsAgo) {
             $date = now()->subMonths($monthsAgo);
 

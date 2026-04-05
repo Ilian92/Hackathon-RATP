@@ -21,10 +21,6 @@ use Illuminate\Support\Str;
 
 class QrCodeController extends Controller
 {
-    /**
-     * Point d'entrée du QR code (URL fixe collée dans le bus).
-     * Génère un token valable 24h et redirige.
-     */
     public function show(Request $request): RedirectResponse
     {
         $bus = Bus::where('code', $request->string('bus'))->firstOrFail();
@@ -39,9 +35,6 @@ class QrCodeController extends Controller
         return redirect()->route('qrcode.landing', $token);
     }
 
-    /**
-     * Page d'accueil après scan (token résolu).
-     */
     public function landing(Request $request, string $token): View
     {
         ['bus_code' => $busCode, 'scanned_at' => $scannedAt] = $this->resolveToken($token);
@@ -110,7 +103,6 @@ class QrCodeController extends Controller
             return false;
         }
 
-        // Fenêtre expirée : la limite ne s'applique plus
         if ($record->window_start->addHours(self::SATISFACTION_WINDOW_H)->isPast()) {
             return false;
         }
@@ -179,17 +171,11 @@ class QrCodeController extends Controller
             ->with('success', 'Votre plainte a bien été enregistrée.');
     }
 
-    /**
-     * @return array{bus_code: string, scanned_at: string}
-     */
     public function expired(): View
     {
         return view('qrcode.expired');
     }
 
-    /**
-     * @return array{bus_code: string, scanned_at: string}
-     */
     private function resolveToken(string $token): array
     {
         return Cache::get("qr:{$token}") ?? abort(redirect()->route('qrcode.expired'));

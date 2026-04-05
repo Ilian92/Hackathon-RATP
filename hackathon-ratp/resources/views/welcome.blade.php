@@ -32,7 +32,6 @@
               }">
             @csrf
 
-            {{-- Email --}}
             <div class="mb-4">
                 <x-input-label for="email" value="Votre adresse email" />
                 <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required autofocus />
@@ -42,7 +41,6 @@
                 </p>
             </div>
 
-            {{-- Ligne de bus --}}
             <div class="mb-4">
                 <x-input-label for="ligne_id" value="Ligne de bus" />
                 <select id="ligne_id" name="ligne_id" required
@@ -57,7 +55,6 @@
                 <x-input-error :messages="$errors->get('ligne_id')" class="mt-2" />
             </div>
 
-            {{-- Direction du bus --}}
             <div class="mb-4" x-show="arrets.length > 0" x-cloak>
                 <x-input-label for="arret_fin_id" value="Direction du bus (terminus)" />
                 <select id="arret_fin_id" name="arret_fin_id"
@@ -72,7 +69,6 @@
                 <x-input-error :messages="$errors->get('arret_fin_id')" class="mt-2" />
             </div>
 
-            {{-- Date et heure --}}
             <div class="mb-4 grid grid-cols-2 gap-4">
                 <div>
                     <x-input-label for="date" value="Date de l'incident" />
@@ -89,7 +85,6 @@
                 </div>
             </div>
 
-            {{-- Type de plainte --}}
             <div class="mb-4">
                 <x-input-label for="complaint_type_id" value="Type de plainte" />
                 <select id="complaint_type_id" name="complaint_type_id" required
@@ -104,7 +99,6 @@
                 <x-input-error :messages="$errors->get('complaint_type_id')" class="mt-2" />
             </div>
 
-            {{-- Description --}}
             <div class="mb-6">
                 <x-input-label for="description" value="Description de l'incident" />
                 <textarea id="description" name="description" rows="4" required

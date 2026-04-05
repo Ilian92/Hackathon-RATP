@@ -36,11 +36,9 @@ class PublicComplaintController extends Controller
         $incidentTime = $date.' '.$time;
         $previousDate = Carbon::parse($date)->subDay()->toDateString();
 
-        // Recherche exacte : planning correspondant à la ligne, l'arrêt et la plage horaire
         $planning = Planning::where('ligne_id', $validated['ligne_id'])
             ->when($validated['arret_fin_id'] ?? null, fn ($q, $id) => $q->where('arret_fin_id', $id))
             ->where(function ($q) use ($date, $previousDate, $time) {
-                // Trajet normal : heure_fin > heure_debut, même journée
                 $q->where(function ($q2) use ($date, $time) {
                     $q2->whereDate('date', $date)
                         ->where(function ($q3) use ($time) {
@@ -52,13 +50,11 @@ class PublicComplaintController extends Controller
                                 });
                         });
                 })
-                // Trajet nuit : débuté la veille, heure_fin < heure_debut, on est encore dans le trajet
                     ->orWhere(function ($q2) use ($previousDate, $time) {
                         $q2->whereDate('date', $previousDate)
                             ->whereRaw('heure_fin < heure_debut')
                             ->whereTime('heure_fin', '>=', $time);
                     })
-                // Trajet nuit : débuté ce jour, heure_fin < heure_debut, l'incident est après heure_debut
                     ->orWhere(function ($q2) use ($date, $time) {
                         $q2->whereDate('date', $date)
                             ->whereRaw('heure_fin < heure_debut')
@@ -67,14 +63,12 @@ class PublicComplaintController extends Controller
             })
             ->first();
 
-        // Fallback : n'importe quel planning sur cette ligne ce jour-là
         if (! $planning) {
             $planning = Planning::where('ligne_id', $validated['ligne_id'])
                 ->whereDate('date', $date)
                 ->first();
         }
 
-        // Fallback final : le planning le plus récent sur cette ligne
         if (! $planning) {
             $planning = Planning::where('ligne_id', $validated['ligne_id'])
                 ->latest('date')

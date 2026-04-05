@@ -32,7 +32,6 @@
 
 <div class="space-y-6">
 
-    {{-- En-tête identité --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-start justify-between gap-4">
             <div class="flex items-center gap-5">
@@ -73,10 +72,8 @@
         </div>
     </div>
 
-    {{-- Score interne + satisfaction --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-        {{-- Score interne --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">Score interne</p>
             <div class="flex items-end gap-2">
@@ -90,7 +87,6 @@
             <p class="mt-2 text-xs text-gray-400">70% satisfaction · 30% plaintes</p>
         </div>
 
-        {{-- Satisfaction --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">Satisfaction usagers</p>
             <div class="flex items-end gap-2">
@@ -116,7 +112,6 @@
         </div>
     </div>
 
-    {{-- Signalements --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
         <div class="flex items-center justify-between mb-4">
             <p class="text-xs text-gray-400 uppercase tracking-wide">Signalements</p>
@@ -161,7 +156,6 @@
         @endif
     </div>
 
-    {{-- Gratifications --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-4">Gratifications</p>
 
@@ -186,7 +180,6 @@
         @endif
     </div>
 
-    {{-- Sanctions --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-4">Sanctions</p>
 

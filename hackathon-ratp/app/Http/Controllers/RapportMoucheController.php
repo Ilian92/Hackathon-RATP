@@ -64,10 +64,8 @@ class RapportMoucheController extends Controller
             'mouche_user_id' => $mouche->id,
         ]);
 
-        // Marquer la mouche comme ayant soumis
         $mission->mouches()->updateExistingPivot($mouche->id, ['submitted_at' => now()]);
 
-        // Si toutes les mouches ont soumis → mission complétée
         if ($mission->fresh()->isComplete()) {
             $mission->update(['status' => MissionMoucheStatus::Completee]);
         }

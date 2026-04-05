@@ -11,7 +11,6 @@
         <form method="POST" action="{{ route('complaint.store', $token) }}">
             @csrf
 
-            {{-- Email --}}
             <div class="mb-4">
                 <x-input-label for="email" value="Votre adresse email" />
                 <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required autofocus />
@@ -21,7 +20,6 @@
                 </p>
             </div>
 
-            {{-- Type de plainte --}}
             <div class="mb-4">
                 <x-input-label for="complaint_type_id" value="Type de plainte" />
                 <select id="complaint_type_id" name="complaint_type_id" required
@@ -36,7 +34,6 @@
                 <x-input-error :messages="$errors->get('complaint_type_id')" class="mt-2" />
             </div>
 
-            {{-- Description --}}
             <div class="mb-6">
                 <x-input-label for="description" value="Description de l'incident" />
                 <textarea id="description" name="description" rows="4" required
