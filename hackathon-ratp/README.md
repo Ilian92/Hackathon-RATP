@@ -1,58 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# RATP Réseaux de Surface — Documentation Technique
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Système de gestion des plaintes et des missions de contrôle qualité pour la RATP Réseaux de Surface.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack technique
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Composant | Technologie |
+|---|---|
+| Backend | Laravel 13 / PHP 8.4 |
+| Base de données | PostgreSQL |
+| Frontend | Tailwind CSS v4, Alpine.js |
+| Cartographie | Leaflet.js |
+| Authentification | Laravel Breeze |
+| Tests | PHPUnit 12 |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Prérequis
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.4 avec extensions : `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`
+- PostgreSQL 14+
+- Composer
+- Node.js 22+ / npm
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Installation (développement)
 
 ```bash
-composer require laravel/boost --dev
+git clone <url-du-repo>
+cd hackathon-ratp
 
-php artisan boost:install
+composer install
+npm install
+
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Configurer `.env` :
 
-## Contributing
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=ratp_dev
+DB_USERNAME=ratp_user
+DB_PASSWORD=votre_mot_de_passe
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan migrate
+php artisan db:seed
 
-## Code of Conduct
+npm run dev
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Installation (production)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+composer install --optimize-autoloader
+npm ci && npm run build
 
-## License
+php artisan migrate --force
+php artisan db:seed --force
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
+```
+
+Démarrage avec pm2 :
+
+```bash
+pm2 start "php artisan serve --host=0.0.0.0 --port=8001" --name ratp
+pm2 save && pm2 startup
+```
+
+---
+
+## Structure du projet
+
+```
+app/
+├── Enums/               # UserRole, ComplaintStep, SanctionType...
+├── Http/
+│   ├── Controllers/     # Un controller par domaine métier
+│   ├── Middleware/      # ApiTokenMiddleware
+│   └── Requests/        # Form Requests pour la validation
+├── Models/              # Modèles Eloquent
+└── Notifications/       # Notifications Laravel (base de données)
+
+database/
+├── factories/           # Factories pour les tests et le seed
+├── migrations/
+└── seeders/             # DatabaseSeeder avec données de démo
+
+resources/views/
+├── com/                 # Vues rôle Agent Com
+├── manager/             # Vues rôle Manager
+├── rh/                  # Vues rôle RH
+├── mouche/              # Vues rôle Mouche
+├── qrcode/              # Formulaires publics QR Code
+├── components/          # Composants Blade réutilisables
+└── layouts/             # Layouts principaux
+
+routes/
+├── web.php              # Routes web (public + auth)
+└── api.php              # Routes API (authentification par token Bearer)
+```
+
+---
+
+## Rôles utilisateurs
+
+| Rôle | Description |
+|---|---|
+| `Com` | Agent de communication — triage et classification des plaintes |
+| `Manager` | Manager d'équipe — traitement et missions mouche |
+| `RH` | Ressources humaines — sanctions et gratifications |
+| `Chauffeur` | Chauffeur de bus — consultation de son dossier |
+| `Mouche` | Agent de contrôle qualité — soumission de rapports |
+
+---
+
+## API
+
+Authentification par token Bearer dans le header `Authorization`.
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/complaints/pending` | Plainte la plus ancienne en attente de classification |
+| `POST` | `/api/complaints/severity` | Enregistre la sévérité (niveau 0–4, nature, justification) |
+
+### GET `/api/complaints/pending`
+
+```json
+{
+  "id": 42,
+  "complaint_type": "Incivilité",
+  "description": "Le conducteur a..."
+}
+```
+
+### POST `/api/complaints/severity`
+
+```json
+{
+  "complaint_id": 42,
+  "level": 3,
+  "is_positive": false,
+  "justification": "Comportement grave signalé"
+}
+```
+
+---
+
+## Tests
+
+```bash
+php artisan test --compact
+```
+
+Les tests utilisent une base SQLite en mémoire (configurée dans `phpunit.xml`).
+
+---
+
+## Variables d'environnement clés
+
+| Variable | Description |
+|---|---|
+| `APP_ENV` | `local` ou `production` |
+| `APP_DEBUG` | `true` en dev, `false` en prod |
+| `APP_URL` | URL publique de l'application |
+| `DB_*` | Connexion PostgreSQL |
+| `API_TOKEN` | Token d'authentification pour l'API IA |
+| `CACHE_DRIVER` | `file` par défaut, `redis` recommandé en prod |
+| `QUEUE_CONNECTION` | `sync` en dev, `database` en prod |
